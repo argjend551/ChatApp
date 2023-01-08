@@ -1,5 +1,3 @@
-const SayHi = (req, res) => {
-  return res.json('hi!');
+export const SayHi = (req, res) => {
+  res.send('hi');
 };
-
-module.export = { SayHi };
