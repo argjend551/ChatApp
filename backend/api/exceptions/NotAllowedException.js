@@ -1,4 +1,4 @@
-export class InvalidInputException extends Error {
+export class NotAllowedException extends Error {
   constructor(message, statusCode) {
     super(message);
     this.statusCode = statusCode;

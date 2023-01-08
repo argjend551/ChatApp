@@ -1,0 +1,30 @@
+{
+  "visitor": {
+    "register": {
+      "post": true
+    },
+    "login": {
+      "post": true
+    }
+  },
+  "user": {
+    "login": {
+      "get": true,
+      "post": true
+    },
+    "myProfile": {
+      "get": true
+    },
+    "logout": {
+      "post": true
+    },
+    "getUsers": {
+      "get": true
+    }
+  },
+  "admin": {
+    "users": {
+      "get": true
+    }
+  }
+}

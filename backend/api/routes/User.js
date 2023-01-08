@@ -2,13 +2,19 @@ import express from 'express';
 
 const router = express.Router();
 
-//import { SayHi } from '../controllers/User.js';
+import {
+  registerUser,
+  loginUser,
+  myProfile,
+  logoutUser,
+  getUsers,
+} from '../controllers/User.js';
 
-router.get('/register');
-router.get('/login');
-router.get('/myProfile');
-router.get('/logout');
-router.get('/users');
+router.post('/register', registerUser);
+router.post('/login', loginUser);
+router.get('/myProfile', myProfile);
+router.post('/logout', logoutUser);
+router.get('/users', getUsers);
 router.get('/user');
 
 export default router;

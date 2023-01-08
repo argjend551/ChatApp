@@ -5,12 +5,10 @@ import MySQLStore from 'express-mysql-session';
 import path from 'path';
 import cors from 'cors';
 import dotenv from 'dotenv';
-import errorHandler from './api/middlewares/GlobalException.js';
+import { errorHandler } from './api/middlewares/GlobalException.js';
 import userRoutes from './api/routes/User.js';
 
 const app = express();
-
-app.use('/api', userRoutes);
 
 const options = {
   host: '127.0.0.1',
@@ -62,5 +60,7 @@ const port = process.env.PORT || 4000;
 app.listen(port, () => {
   console.log(`Backend listening on port ${port}`);
 });
+
+app.use('/api', userRoutes);
 
 app.use(errorHandler);
