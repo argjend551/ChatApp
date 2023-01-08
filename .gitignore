@@ -1,0 +1,27 @@
+# Ignore secrets folder
+backend/secrets
+
+# Ignore node_modules directory
+node_modules/
+
+# Ignore log files and directories
+logs/
+*.log
+
+# Ignore compiled files
+*.com
+*.class
+*.dll
+*.exe
+*.o
+*.so
+
+# Ignore package-lock.json file
+package-lock.json
+
+# Ignore environment variable files
+.env
+
+# Ignore IDE files and directories
+.idea/
+*.iml
