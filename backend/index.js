@@ -7,6 +7,7 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import { errorHandler } from './api/middlewares/GlobalException.js';
 import userRoutes from './api/routes/User.js';
+import chatRoutes from './api/routes/Chat.js';
 
 const app = express();
 
@@ -62,5 +63,6 @@ app.listen(port, () => {
 });
 
 app.use('/api', userRoutes);
+app.use('/api', chatRoutes);
 
 app.use(errorHandler);
