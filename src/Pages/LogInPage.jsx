@@ -49,8 +49,6 @@ export default function LogInPage({ loggedIn }) {
         type: type,
       });
 
-      console.log(data);
-
       setWrongLogin(true);
       if (type == 'success') {
         setWrongLogin(false);

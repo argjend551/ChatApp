@@ -72,8 +72,6 @@ module.exports = class UserApi {
           saltRounds
         );
 
-        console.log(typeof req.body.password);
-
         await this.db.query(
           `INSERT INTO users (user_id, email, password, name,role) VALUES (?, ?, ?, ?,?)`,
           [id, normalizedEmail, encrypted, req.body.name, 'user']
@@ -114,7 +112,7 @@ module.exports = class UserApi {
           throw new InvalidInputException('Invalid username or password', 400);
         }
 
-        delete user.password;
+        delete user[0].password;
 
         req.session.user = user[0];
 
@@ -158,7 +156,7 @@ module.exports = class UserApi {
 
         const currentUser = req.session.user.user_id;
         const users = await this.db.query(
-          `SELECT * FROM users WHERE user_id != ?`,
+          `SELECT * FROM users WHERE user_id != ? ORDER BY name`,
           [currentUser]
         );
         const usersDTO = users[0].map((user) => ({

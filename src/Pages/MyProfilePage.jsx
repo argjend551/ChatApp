@@ -2,32 +2,34 @@ import React, { useState } from 'react';
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Container, Row, Col, Form, Alert, Button } from 'react-bootstrap';
-import Message from '../components/Message';
-import { CSSTransition } from 'react-transition-group';
-
+import SearchBar from '../components/SearchBar';
 import Room from '../components/Room';
-import '../scss/App.scss';
 import MessageBar from '../components/MessageBar';
 import RoomHeader from '../components/RoomHeader';
+import CreateRoom from '../components/CreateRoom';
+import '../scss/App.scss';
 
 export default function MyProfilePage({ setLoginParent }) {
   const [user, setUser] = useState(null);
+  const [activeList, setActiveList] = useState('rooms');
+  const [activeRoom, setActiveRoom] = useState('rooms');
   const [loggedIn, setLogin] = useState(false);
   const [showMessage, setShowMessage] = useState(false);
+  const [createRoom, setCreateRoom] = useState(false);
   const [roomMessages, setRoomMessages] = useState([]);
+  const [users, setUsers] = useState([]);
   const [rooms, setRooms] = useState([]);
-  const [room, setRoom] = useState('');
+  const [room, setRoom] = useState('test');
   const [SSE, setSSE] = useState('');
-  const [isRoomReady, setIsRoomReady] = useState(false);
-  const [message, setMessage] = useState({
-    text: '',
-    type: '',
-  });
+
   let navigate = useNavigate();
 
   useEffect(() => {
-    getMyProfile();
-    getRooms();
+    (async () => {
+      await getMyProfile();
+      await getRooms();
+      await getUsers();
+    })();
   }, []);
 
   async function getMyProfile() {
@@ -58,6 +60,7 @@ export default function MyProfilePage({ setLoginParent }) {
         },
       });
       const data = await response.json();
+      setUsers(data);
     } catch (error) {
       console.error(error.message);
     }
@@ -72,10 +75,8 @@ export default function MyProfilePage({ setLoginParent }) {
           'Content-Type': 'application/json',
         },
       });
-      if (!response.ok) {
-        throw new Error(response.statusText);
-      }
       const data = await response.json();
+      await joinRoom(data[0]);
       setRooms(data);
     } catch (error) {
       console.error(error.message);
@@ -101,38 +102,21 @@ export default function MyProfilePage({ setLoginParent }) {
 
   async function joinRoom(room) {
     try {
-      if (SSE) setSSE('');
+      setSSE('');
       setRoomMessages([]);
+      setRoom(room);
 
       const sse = new EventSource(`/api/sse/${room.roomId}`, {
         withCredentials: true,
       });
-      const connectPromise = new Promise((resolve) => {
-        sse.addEventListener('connect', (message) => {
-          let data = JSON.parse(message.data);
-          console.log('[connect]', data);
-          resolve();
-        });
-      });
-
-      sse.addEventListener('disconnect', (message) => {
-        let data = JSON.parse(message.data);
-        console.log('[disconnect]', data);
-      });
+      sse.onopen = async () => {
+        await getMessages();
+        setSSE(sse);
+      };
 
       sse.addEventListener('new-room-message', (message) => {
         let data = JSON.parse(message.data);
-        // console.log('[new-private-message]', data);
-        // console.log('hi');
-        // setRoomMessages((prevMessages) => [...prevMessages, data]);
-        // console.log(roomMessages);
-      });
-
-      await connectPromise;
-      getMessages().finally(() => {
-        setRoom(room);
-        setSSE(sse);
-        console.log(room);
+        setRoomMessages((prevMessages) => [...prevMessages, data]);
       });
     } catch (error) {
       console.error(error);
@@ -145,19 +129,11 @@ export default function MyProfilePage({ setLoginParent }) {
         method: 'POST',
         credentials: 'include',
       });
-      const data = await response.json();
-      setMessage({
-        text: data.message,
-        type: 'Success',
-      });
+      await response.json();
+
       setShowMessage(true);
       navigate('/');
-    } catch (error) {
-      setMessage({
-        text: error.message,
-        type: 'Danger',
-      });
-    }
+    } catch (error) {}
   }
 
   return (
@@ -172,42 +148,43 @@ export default function MyProfilePage({ setLoginParent }) {
             </div>
             <div className='content'>
               <div className='message-list'>
-                <div className='list-top'>
-                  <input type='text' />
-                  <button className='search'>
-                    <i className='fa fa-search' />
-                  </button>
-                  <button className='add'>+</button>
+                <SearchBar
+                  joinRoom={joinRoom}
+                  rooms={rooms}
+                  users={users}
+                  activeList={activeList}
+                  setActiveList={setActiveList}
+                />
+                <div className='newRoom' onClick={() => setCreateRoom(true)}>
+                  + New Room
                 </div>
-                <p>My rooms</p>
-                {rooms.map((x, i) => (
-                  <div
-                    className='room'
-                    key={i}
-                    onClick={() => {
-                      joinRoom(x);
-                    }}
-                  >
-                    {x.roomName}
-                  </div>
-                ))}
                 <button className='login-btn' onClick={logout}>
                   Logout
                 </button>
               </div>
+
               <div className='chat'>
                 <div className='top'>
-                  <RoomHeader />
+                  <RoomHeader room={room} />
                 </div>
+
                 <div className='message-container' id='message-container'>
-                  <Room
-                    room={room}
-                    roomMessages={roomMessages}
-                    setRoom={setRoom}
-                    setRoomMessages={setRoomMessages}
-                    setSSE={setSSE}
-                    SSE={SSE}
-                  />
+                  {createRoom ? (
+                    <CreateRoom
+                      setCreateRoom={setCreateRoom}
+                      joinRoom={joinRoom}
+                      getRooms={getRooms}
+                    />
+                  ) : (
+                    <Room
+                      room={room}
+                      roomMessages={roomMessages}
+                      setRoom={setRoom}
+                      setRoomMessages={setRoomMessages}
+                      setSSE={setSSE}
+                      SSE={SSE}
+                    />
+                  )}
                 </div>
                 <MessageBar roomId={room.roomId} />
               </div>
@@ -225,61 +202,4 @@ export default function MyProfilePage({ setLoginParent }) {
       {''}
     </div>
   );
-
-  // <Container className='test'>
-  //   <Container className={room ? 'hide-login-container' : 'login-container'}>
-  //     <Row>
-  //       <Col xs={12}>
-  //         {showMessage && (
-  //           <Alert variant={message.type}>{message.text}</Alert>
-  //         )}
-  //       </Col>
-  //     </Row>
-  //     <Row>
-  //       <Col xs={12}>
-  //         {loggedIn ? (
-  //           <>
-  //             <h1>{user.email}</h1>
-  //             <Button variant='secondary' onClick={logout}>
-  //               Logout
-  //             </Button>
-  //           </>
-  //         ) : (
-  //           <>
-  //             <p>Please log in to view your profile</p>
-  //             <Button variant='secondary' onClick={() => navigate(`/`)}>
-  //               Login
-  //             </Button>
-  //           </>
-  //         )}
-  //       </Col>
-  //     </Row>
-  //     <Row>
-  //       <Col xs={12}>
-  //         <h2>My rooms</h2>
-  //         {rooms.map((room, i) => (
-  //           <div
-  //             className='room'
-  //             key={i}
-  //             onClick={() => {
-  //               joinRoom(room);
-  //             }}
-  //           >
-  //             {room.roomName}
-  //           </div>
-  //         ))}
-  //       </Col>
-  //     </Row>
-  //   </Container>
-  //   {room && (
-  //     <Room
-  //       room={room}
-  //       roomMessages={roomMessages}
-  //       setSSE={setSSE}
-  //       SSE={SSE}
-  //       setRoom={setRoom}
-  //       setRoomMessages={setRoomMessages}
-  //     />
-  //   )}
-  // </Container>
 }

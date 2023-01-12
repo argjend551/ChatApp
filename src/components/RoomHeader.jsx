@@ -2,20 +2,10 @@ import React, { useState } from 'react';
 import { Button, Container } from 'react-bootstrap';
 import { IoMdSend } from 'react-icons/io';
 
-function RoomHeader({ roomName, setRoomMessages, setRoom, setSSE, SSE }) {
-  // async function leaveroom() {
-  //   SSE.close();
+function RoomHeader({ room }) {
+  console.log(room.roomName);
 
-  //   SSE.addEventListener('disconnect', (message) => {
-  //     let data = JSON.parse(message.data);
-  //     console.log('[disconnect]', data);
-  //     setSSE(null);
-  //   });
-  //   setRoomMessages(false);
-  //   setRoom(false);
-  // }
-
-  return <>{roomName}RoomName</>;
+  return <>{room.roomName ? <div>{room.roomName}</div> : <></>}</>;
 }
 
 export default RoomHeader;

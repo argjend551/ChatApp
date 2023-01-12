@@ -6,38 +6,39 @@ const mysql = require('mysql2/promise');
       require('./secrets/dbCredentials.json')
     );
 
-    await connection.query('DROP TABLE IF EXISTS users');
-    console.log('Users table dropped');
+    // await connection.query('DROP TABLE IF EXISTS users');
+    // console.log('Users table dropped');
+    // console.log('Users table created');
 
-    await connection.query(`
-      CREATE TABLE IF NOT EXISTS users (
-        user_id VARCHAR(255) PRIMARY KEY,
-        email VARCHAR(255) NOT NULL,
-        name VARCHAR(255) NOT NULL,
-        password VARCHAR(255) NOT NULL,
-        role VARCHAR(255) NOT NULL
-      )
-    `);
+    // await connection.query('DROP TABLE IF EXISTS messages');
+    // console.log('Messages table dropped');
+    // console.log('Messages table created');
 
-    console.log('Users table created');
+    // await connection.query('DROP TABLE IF EXISTS rooms');
+    // console.log('rooms table dropped');
+    // console.log('rooms table created');
 
-    console.log('Messages table created');
+    // await connection.query('DROP TABLE IF EXISTS roomMembers');
+    // console.log('roomMembers table dropped');
+    // console.log('roomMembers table created');
 
-    await connection.query('DROP TABLE IF EXISTS messages');
-    console.log('Messages table dropped');
+    // await connection.query(`
+    //   CREATE TABLE IF NOT EXISTS users (
+    //     user_id VARCHAR(255) PRIMARY KEY,
+    //     email VARCHAR(255) NOT NULL,
+    //     name VARCHAR(255) NOT NULL,
+    //     password VARCHAR(255) NOT NULL,
+    //     role VARCHAR(255) NOT NULL
+    //   )
+    // `);
 
-    await connection.query('DROP TABLE IF EXISTS rooms');
-    console.log('rooms table dropped');
-
-    console.log('rooms table created');
-    await connection.query(`
-      CREATE TABLE IF NOT EXISTS rooms (
-        room_id VARCHAR(255) PRIMARY KEY,
-        roomName VARCHAR(255) NOT NULL,
-        moderator VARCHAR(255) NOT NULL,
-        members VARCHAR(255)
-      )
-    `);
+    // await connection.query(`
+    //   CREATE TABLE IF NOT EXISTS rooms (
+    //     room_id VARCHAR(255) PRIMARY KEY,
+    //     roomName VARCHAR(255) NOT NULL,
+    //     moderator VARCHAR(255) NOT NULL
+    //   )
+    // `);
 
     await connection.query(`
       CREATE TABLE IF NOT EXISTS messages (
@@ -51,6 +52,16 @@ const mysql = require('mysql2/promise');
       )
     `);
     console.log('Messages table created');
+
+    // await connection.query(`
+    //   CREATE TABLE IF NOT EXISTS roomMembers (
+    //     roomMembers_id VARCHAR(255) PRIMARY KEY,
+    //     room_id VARCHAR(255) NOT NULL,
+    //     member VARCHAR(255) NOT NULL,
+    //     FOREIGN KEY (room_id) REFERENCES rooms(room_id),
+    //     FOREIGN KEY (member) REFERENCES users(user_id)
+    //   )
+    // `);
 
     // End the database connection
     await connection.end();

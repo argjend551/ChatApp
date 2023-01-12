@@ -2,6 +2,10 @@ const uuid = require('uuid');
 const acl = require('../acl');
 const mysql = require('mysql2/promise');
 const NotLoggedInException = require('../api/exceptions/NotLoggedInException');
+const NotAllowedException = require('../api/exceptions/NotAllowedException');
+const InvalidInputException = require('../api/exceptions/InvalidInputException');
+
+const { resolveEnvPrefix } = require('vite');
 
 module.exports = class ChatApi {
   connections = [];
@@ -16,19 +20,17 @@ module.exports = class ChatApi {
   start() {
     this.app.get('/api/sse/:roomId', async (req, res, next) => {
       try {
-        // Assign a unique ID to the client
         const clientId = req.session.user.user_id;
         const roomId = req.params.roomId;
 
-        // Check if the user is logged in
         if (!clientId) {
           throw new NotLoggedInException('User is not logged in', 401);
         }
 
         // Check if the user is a member of the room
         const results = await this.db.query(
-          'SELECT * FROM rooms WHERE (moderator = ? OR members = ?) AND room_id = ?',
-          [clientId, clientId, roomId]
+          'SELECT * FROM rooms WHERE moderator = ? AND room_id = ?',
+          [clientId, roomId]
         );
 
         if (results[0].length > 0) {
@@ -75,20 +77,22 @@ module.exports = class ChatApi {
 
     this.app.get('/api/rooms', async (req, res, next) => {
       try {
-        const client = req.session.user;
+        const clientId = req.session.user.user_id;
 
-        if (!client) {
+        if (!clientId) {
           throw new NotLoggedInException('User is not logged in', 401);
         }
 
         const rooms = await this.db.query(
-          `SELECT * FROM rooms WHERE moderator = ? OR members = ?`,
-          [client.user_id, client.user_id]
+          `SELECT * FROM rooms WHERE moderator = ?`,
+          [clientId]
         );
+
         const roomDTO = rooms[0].map((room) => ({
           roomName: room.roomName,
           roomId: room.room_id,
         }));
+
         res.json(roomDTO);
       } catch (error) {
         next(error);
@@ -97,26 +101,28 @@ module.exports = class ChatApi {
 
     this.app.post('/api/createRoom', async (req, res, next) => {
       try {
-        const clientId = req.session.user;
+        const clientId = req.session.user.user_id;
 
         if (!clientId) {
           throw new NotLoggedInException('User is not logged in', 401);
         }
 
-        const currentUserId = req.session.user.user_id;
-
         const roomName = req.body.roomName;
-
-        const member = req.body.members;
+        if (!roomName || typeof roomName !== 'string') {
+          throw new InvalidInputException(
+            'Please provide a valid room name',
+            400
+          );
+        }
 
         const roomId = uuid.v4();
 
         await this.db.query(
-          'INSERT INTO rooms (room_id, roomName, moderator,members) VALUES (?, ?, ?,?)',
-          [roomId, roomName, currentUserId, member]
+          'INSERT INTO rooms (room_id, roomName, moderator) VALUES (?, ?, ?)',
+          [roomId, roomName, clientId]
         );
 
-        res.send({ roomId });
+        res.send({ roomName: roomName, roomId: roomId });
       } catch (error) {
         next(error);
       }
@@ -125,46 +131,43 @@ module.exports = class ChatApi {
     this.app.post('/api/send-message-to-room', async (req, res, next) => {
       try {
         const { roomId, message } = req.body;
+
         const clientId = req.session.user.user_id;
 
-        // Check if the user is logged in
         if (!clientId) {
           throw new NotLoggedInException('User is not logged in', 401);
         }
 
         // Check if the user is a member of the room
         const [results] = await this.db.query(
-          'SELECT * FROM rooms WHERE (moderator = ? OR members = ?) AND room_id = ?',
-          [clientId, clientId, roomId]
+          'SELECT * FROM rooms WHERE moderator = ? AND room_id = ?',
+          [clientId, roomId]
         );
 
-        if (results.length > 0) {
-          // The user is a member of the room, so send the message
-          const userConnected = await this.sendMessage(
-            roomId,
-            message,
-            clientId
+        if (!results.length) {
+          throw new NotAllowedException(
+            'User is not a member of the room',
+            403
           );
+        }
 
-          if (!userConnected) {
-            return res.status(403).send({
-              error: 'User is not connected to the room',
-            });
-          }
-          const messageId = uuid.v4();
-          // Save the message in the database
-          await this.db.query(
-            'INSERT INTO messages (message_id, sender, room_id, message, date) VALUES (?, ?, ?, ?, ?)',
-            [messageId, clientId, roomId, message, new Date()]
-          );
+        // The user is a member of the room, so send the message
+        const userConnected = await this.sendMessage(roomId, message, clientId);
 
-          res.send({ message: 'Message sent to room' });
-        } else {
-          // The user is not a member of the room, so send an error response
-          res.status(403).send({
-            error: 'User is not a member of the room',
+        if (!userConnected) {
+          return res.status(403).send({
+            error: 'User is not connected to the room',
           });
         }
+        const messageId = uuid.v4();
+
+        // Save the message in the database
+        await this.db.query(
+          'INSERT INTO messages (message_id, sender, room_id, message, date) VALUES (?, ?, ?, ?, ?)',
+          [messageId, clientId, roomId, message, new Date()]
+        );
+
+        res.send({ message: 'Message sent to room' });
       } catch (error) {
         next();
       }
@@ -185,11 +188,13 @@ module.exports = class ChatApi {
       if (!roomConnections) {
         return;
       }
+
       // The user is connected to the room, so fetch the messages from the database
       const room = await this.db.query(
-        'SELECT * FROM rooms WHERE (moderator = ? OR members = ?) AND room_id = ?',
-        [clientId, clientId, roomConnections.roomId]
+        'SELECT * FROM rooms WHERE moderator = ? AND room_id = ?',
+        [clientId, roomConnections.roomId]
       );
+
       if (!room[0].length) {
         return res.status(403).send({
           error: 'User is not a member of the room',
@@ -216,20 +221,34 @@ module.exports = class ChatApi {
 
       res.send(messageDTO);
     });
-  }
 
-  async getUsernameFromUserId(userId) {
-    const [results] = await this.db.query(
-      'SELECT * FROM users WHERE user_id = ?',
-      [userId]
-    );
-    if (!results.length) {
-      return null;
-    }
-    return results[0].email;
+    this.app.post('/api/inviteToRoom', async (req, res, next) => {
+      try {
+        const roomId = req.body.roomId;
+        const invitedMembers = req.body.invitedMembers; // array of member ids
+
+        // Check if the room exists
+        const findRoom = await this.db.query(
+          'SELECT * From rooms  WHERE room_id = ?',
+          [roomId]
+        );
+
+        if (findRoom) {
+          throw new NotAllowedException('Room does not exist', 404);
+        }
+
+        // // Send an SSE event to the invited members
+        // sseInstance.send(invitedMembers, 'invitation', room);
+
+        res.send({ message: 'Invitations sent successfully' });
+      } catch (error) {
+        next(error);
+      }
+    });
   }
 
   broadcast(event, data) {
+    console.log(event);
     for (let connection of this.connections) {
       connection.res.write(
         'event:' + event + '\ndata:' + JSON.stringify(data) + '\n\n'
@@ -268,6 +287,17 @@ module.exports = class ChatApi {
     } else {
       return false;
     }
+  }
+
+  async getUsernameFromUserId(userId) {
+    const [results] = await this.db.query(
+      'SELECT * FROM users WHERE user_id = ?',
+      [userId]
+    );
+    if (!results.length) {
+      return null;
+    }
+    return results[0].email;
   }
 
   async formatDate(date) {
