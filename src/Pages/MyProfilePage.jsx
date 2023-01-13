@@ -76,7 +76,7 @@ export default function MyProfilePage({ setLoginParent }) {
         },
       });
       const data = await response.json();
-      await joinRoom(data[0]);
+      data[0] ? await joinRoom(data[0]) : null;
       setRooms(data);
     } catch (error) {
       console.error(error.message);
@@ -174,6 +174,7 @@ export default function MyProfilePage({ setLoginParent }) {
                       setCreateRoom={setCreateRoom}
                       joinRoom={joinRoom}
                       getRooms={getRooms}
+                      users={users}
                     />
                   ) : (
                     <Room

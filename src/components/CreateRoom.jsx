@@ -4,9 +4,10 @@ import Modal from 'react-bootstrap/Modal';
 import UsersDropDown from './UsersDropDown';
 import Alert from 'react-bootstrap/Alert';
 
-const CreateRoom = ({ setCreateRoom, joinRoom, getRooms }) => {
+const CreateRoom = ({ setCreateRoom, joinRoom, getRooms, users }) => {
   const [roomName, setRoomName] = useState('');
-  const [members, setMembers] = useState('');
+  const [selectedUsers, setSelectedUsers] = useState([]);
+
   const [showMessage, setShowMessage] = useState({
     text: '',
     type: '',
@@ -26,6 +27,8 @@ const CreateRoom = ({ setCreateRoom, joinRoom, getRooms }) => {
       let room = await response.json();
       await joinRoom(room);
       await getRooms();
+      if (selectedUsers.length) await inviteToRoom(room.roomId);
+
       setShowMessage({
         text: 'Room Created!',
         type: 'success',
@@ -34,6 +37,24 @@ const CreateRoom = ({ setCreateRoom, joinRoom, getRooms }) => {
       setTimeout(() => {
         setCreateRoom(false);
       }, 2000);
+    } catch (error) {
+      console.error(error);
+    }
+  };
+  const inviteToRoom = async (roomId) => {
+    try {
+      const response = await fetch(`/api/inviteToRoom`, {
+        method: 'POST',
+        credentials: 'include', // include cookies in the request
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          roomId: roomId,
+          invitedMembers: selectedUsers,
+        }),
+      });
+      const data = await response.json();
     } catch (error) {
       console.error(error);
     }
@@ -60,7 +81,11 @@ const CreateRoom = ({ setCreateRoom, joinRoom, getRooms }) => {
             </div>
             <div className='form-group'>
               <label>Members</label>
-              <UsersDropDown />
+              <UsersDropDown
+                users={users}
+                setSelectedUsers={setSelectedUsers}
+                selectedUsers={selectedUsers}
+              />
             </div>
           </form>
         </Modal.Body>

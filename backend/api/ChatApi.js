@@ -47,10 +47,9 @@ module.exports = class ChatApi {
           });
 
           req.on('close', () => {
-            this.connections = this.connections[0].filter(
+            this.connections = this.connections.filter(
               (connection) => connection.id !== clientId
             );
-
             this.broadcast('disconnect', {
               message: 'client disconnected',
             });
@@ -224,21 +223,28 @@ module.exports = class ChatApi {
 
     this.app.post('/api/inviteToRoom', async (req, res, next) => {
       try {
+        const clientId = req.session.user.user_id;
         const roomId = req.body.roomId;
         const invitedMembers = req.body.invitedMembers; // array of member ids
-
-        // Check if the room exists
-        const findRoom = await this.db.query(
-          'SELECT * From rooms  WHERE room_id = ?',
-          [roomId]
+        // Check if the user is moderator of the room
+        const results = await this.db.query(
+          'SELECT * FROM rooms WHERE moderator = ? AND room_id = ?',
+          [clientId, roomId]
         );
 
-        if (findRoom) {
-          throw new NotAllowedException('Room does not exist', 404);
+        if (!results[0]) {
+          throw new NotAllowedException(
+            'You are not a moderator of this room',
+            404
+          );
         }
-
-        // // Send an SSE event to the invited members
-        // sseInstance.send(invitedMembers, 'invitation', room);
+        invitedMembers.forEach(async (user) => {
+          let invitationId = uuid.v4();
+          await this.db.query(
+            'INSERT INTO roomInvitations (roomInvitations_id, room_id, invitationTo, accepted) VALUES (?, ?, ?,?)',
+            [invitationId, roomId, user.id, false]
+          );
+        });
 
         res.send({ message: 'Invitations sent successfully' });
       } catch (error) {

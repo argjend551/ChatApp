@@ -160,6 +160,7 @@ module.exports = class UserApi {
           [currentUser]
         );
         const usersDTO = users[0].map((user) => ({
+          id: user.user_id,
           email: user.email,
           name: user.name,
         }));
