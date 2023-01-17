@@ -18,7 +18,38 @@ module.exports = class ChatApi {
   }
 
   start() {
-    this.app.get('/api/sse/:roomId', async (req, res, next) => {
+    this.app.get('/api/sse', (req, res) => {
+      // Set the response headers for SSE
+      res.set({
+        'Content-Type': 'text/event-stream',
+        'Cache-Control': 'no-cache',
+        Connection: 'keep-alive',
+      });
+      // check if the user already has a connection
+      const existingConnection = this.connections.find(
+        (c) => c.id === req.session.user.user_id
+      );
+
+      if (existingConnection) {
+        existingConnection.res == null;
+      }
+      // add the new connection to the array
+      this.connections.push({
+        id: req.session.user.user_id,
+        res: res,
+      });
+      // Send a message to the client to confirm the connection
+      res.write(` Connection established\n\n`);
+
+      // Listen for the 'close' event on the response to remove the connection from the array
+      res.on('close', () => {
+        this.connections = this.connections.filter(
+          (c) => c.id !== req.session.user.user_id
+        );
+      });
+    });
+
+    this.app.get('/api/enterRoom/:roomId', async (req, res, next) => {
       try {
         const clientId = req.session.user.user_id;
         const roomId = req.params.roomId;
@@ -29,40 +60,35 @@ module.exports = class ChatApi {
 
         // Check if the user is a member of the room
         const results = await this.db.query(
-          'SELECT * FROM rooms WHERE moderator = ? AND room_id = ?',
-          [clientId, roomId]
+          `SELECT * FROM rooms
+          LEFT JOIN roommembers ON rooms.room_id = roommembers.room_id
+          WHERE moderator = ? OR roommembers.member = ?`,
+          [clientId, clientId]
         );
 
         if (results[0].length > 0) {
-          // Remove any existing connections belonging to the user
-          this.connections = this.connections.filter(
-            (connection) => connection.id !== clientId
+          // Find the existing connection for the user
+          const existingConnection = this.connections.find(
+            (c) => c.id === clientId
+          );
+          const [moderator] = await this.db.query(
+            `SELECT * FROM rooms
+          WHERE room_id = ? AND moderator = ?`,
+            [roomId, clientId]
           );
 
-          // Add the new connection
-          this.connections.push({
-            id: clientId,
-            res,
-            roomId: roomId,
-          });
-
-          req.on('close', () => {
-            this.connections = this.connections.filter(
-              (connection) => connection.id !== clientId
-            );
-            this.broadcast('disconnect', {
-              message: 'client disconnected',
+          if (existingConnection) {
+            existingConnection.room = roomId;
+            res.send({ moderator: moderator.length });
+          } else {
+            // add the new connection to the array
+            this.connections.push({
+              id: clientId,
+              res: res,
+              room: roomId,
             });
-          });
-
-          res.set({
-            'Content-Type': 'text/event-stream',
-            'Cache-Control': 'no-cache',
-          });
-
-          this.broadcast('connect', {
-            message: 'clients connected: ' + this.connections.length,
-          });
+            res.send({ moderator: moderator.length });
+          }
         } else {
           // The user is not a member of the room, so send an error response
           res.status(403).send({
@@ -83,8 +109,11 @@ module.exports = class ChatApi {
         }
 
         const rooms = await this.db.query(
-          `SELECT * FROM rooms WHERE moderator = ?`,
-          [clientId]
+          `SELECT * FROM rooms WHERE moderator = ?
+            UNION
+            SELECT rooms.* FROM rooms, roommembers WHERE rooms.room_id = roommembers.room_id AND roommembers.member = ?
+`,
+          [clientId, clientId]
         );
 
         const roomDTO = rooms[0].map((room) => ({
@@ -127,37 +156,32 @@ module.exports = class ChatApi {
       }
     });
 
-    this.app.post('/api/send-message-to-room', async (req, res, next) => {
+    this.app.post('/api/sendMessage', async (req, res, next) => {
       try {
-        const { roomId, message } = req.body;
-
         const clientId = req.session.user.user_id;
+        const roomId = req.body.roomId;
+        const message = req.body.message;
 
         if (!clientId) {
           throw new NotLoggedInException('User is not logged in', 401);
         }
 
-        // Check if the user is a member of the room
-        const [results] = await this.db.query(
-          'SELECT * FROM rooms WHERE moderator = ? AND room_id = ?',
-          [clientId, roomId]
+        // check if the user is a member of the room
+        const results = await this.db.query(
+          `SELECT * FROM rooms
+          LEFT JOIN roommembers ON rooms.room_id = roommembers.room_id
+          WHERE moderator = ? OR roommembers.member = ?`,
+          [clientId, clientId]
         );
 
-        if (!results.length) {
+        if (!results[0].length) {
           throw new NotAllowedException(
             'User is not a member of the room',
             403
           );
         }
 
-        // The user is a member of the room, so send the message
-        const userConnected = await this.sendMessage(roomId, message, clientId);
-
-        if (!userConnected) {
-          return res.status(403).send({
-            error: 'User is not connected to the room',
-          });
-        }
+        this.sendMessage(clientId, roomId, message);
         const messageId = uuid.v4();
 
         // Save the message in the database
@@ -167,8 +191,8 @@ module.exports = class ChatApi {
         );
 
         res.send({ message: 'Message sent to room' });
-      } catch (error) {
-        next();
+      } catch (err) {
+        next(err);
       }
     });
 
@@ -190,8 +214,14 @@ module.exports = class ChatApi {
 
       // The user is connected to the room, so fetch the messages from the database
       const room = await this.db.query(
-        'SELECT * FROM rooms WHERE moderator = ? AND room_id = ?',
-        [clientId, roomConnections.roomId]
+        `SELECT * FROM rooms 
+         WHERE moderator = ? AND room_id = ?
+            UNION
+            SELECT rooms.* FROM rooms
+            INNER JOIN roommembers 
+            ON rooms.room_id = roommembers.room_id
+            WHERE roommembers.member = ? AND rooms.room_id = ?`,
+        [clientId, roomConnections.room, clientId, roomConnections.room]
       );
 
       if (!room[0].length) {
@@ -202,7 +232,7 @@ module.exports = class ChatApi {
 
       const messages = await this.db.query(
         'SELECT * FROM messages WHERE room_id = ? ORDER BY date',
-        [roomConnections.roomId]
+        [roomConnections.room]
       );
 
       const messageDTO = await Promise.all(
@@ -244,6 +274,7 @@ module.exports = class ChatApi {
             'INSERT INTO roomInvitations (roomInvitations_id, room_id, invitationTo, accepted) VALUES (?, ?, ?,?)',
             [invitationId, roomId, user.id, false]
           );
+          await this.sendInvitation(roomId, user.id);
         });
 
         res.send({ message: 'Invitations sent successfully' });
@@ -251,10 +282,75 @@ module.exports = class ChatApi {
         next(error);
       }
     });
+
+    this.app.post('/api/handleInvitation', async (req, res, next) => {
+      const clientId = req.session.user.user_id;
+      const { Accepted, invitationId } = req.body;
+
+      if (!clientId) {
+        throw new NotLoggedInException('User is not logged in', 401);
+      }
+
+      if (!Accepted) {
+        await this.db.query(
+          'DELETE FROM roominvitations WHERE roomInvitations_id = ?',
+          [invitationId]
+        );
+        return;
+      }
+      //get the room id from the invitation
+      const [results] = await this.db.query(
+        'SELECT room_id FROM roominvitations WHERE roomInvitations_id = ?',
+        [invitationId]
+      );
+      const roomId = results[0].room_id;
+
+      const roomMembersId = uuid.v4();
+
+      //insert the user into the room
+      await this.db.query(
+        'INSERT INTO roomMembers (roomMembers_id,room_id, member) VALUES (?,?,?)',
+        [roomMembersId, roomId, clientId]
+      );
+
+      //delete the invitation
+      await this.db.query(
+        'DELETE FROM roominvitations WHERE roomInvitations_id = ?',
+        [invitationId]
+      );
+
+      res.send({ message: 'Invitation accepted successfully' });
+    });
+
+    this.app.get('/api/invitations', async (req, res, next) => {
+      const clientId = req.session.user.user_id;
+
+      if (!clientId) {
+        throw new NotLoggedInException('User is not logged in', 401);
+      }
+
+      // The user is connected to the room, so fetch the messages from the database
+      const invitations = await this.db.query(
+        `SELECT * FROM roominvitations WHERE invitationTo = ?`,
+        [clientId]
+      );
+
+      const invitationsDTO = await Promise.all(
+        invitations[0].map(async (x) => {
+          const [room] = await this.getRoomById(x.room_id);
+          return {
+            roomName: room.roomName,
+            roomId: x.room_id,
+            invitationId: x.roomInvitations_id,
+          };
+        })
+      );
+
+      res.send(invitationsDTO);
+    });
   }
 
   broadcast(event, data) {
-    console.log(event);
     for (let connection of this.connections) {
       connection.res.write(
         'event:' + event + '\ndata:' + JSON.stringify(data) + '\n\n'
@@ -262,36 +358,38 @@ module.exports = class ChatApi {
     }
   }
 
-  async sendMessage(roomId, message, clientId) {
-    // Find all connections belonging to the room
-    const roomConnections = this.connections.filter(
-      (connection) => connection.roomId === roomId
-    );
+  async sendMessage(clientId, roomId, message) {
+    // find the connections in the room
+    const connectionsInRoom = this.connections.filter((c) => c.room === roomId);
 
-    // Check if the user is connected to the room
-    const userConnected = roomConnections.some(
-      (connection) => connection.id === clientId
-    );
+    const time = new Date();
+    for (let connection of connectionsInRoom) {
+      const sendMessage = {
+        message: message,
+        sender: await this.getUsernameFromUserId(clientId),
+        date: await this.formatDate(time),
+        sentByMe: connection.id === clientId,
+      };
 
-    if (userConnected) {
-      // Write the message to all connections belonging to the room
-      const time = new Date();
-      for (let connection of roomConnections) {
-        const sendMessage = {
-          message: message,
-          sender: await this.getUsernameFromUserId(clientId),
-          date: await this.formatDate(time),
-          sentByMe: connection.id === clientId,
-        };
-        connection.res.write(
-          'event: new-room-message\ndata:' +
-            JSON.stringify(sendMessage) +
-            '\n\n'
-        );
-      }
-      return true;
-    } else {
-      return false;
+      connection.res.write(
+        'event: new-message\ndata:' + JSON.stringify(sendMessage) + '\n\n'
+      );
+    }
+  }
+
+  async sendInvitation(roomId, invitedMembers) {
+    // find the connections of the invited members
+    const connectionsOfInvitedMembers = this.connections.filter((c) =>
+      invitedMembers.includes(c.id)
+    );
+    const room = await this.getRoomById(roomId);
+    for (let connection of connectionsOfInvitedMembers) {
+      const sendInvitation = {
+        roomName: room[0].roomName,
+      };
+      connection.res.write(
+        'event: new-invitation\ndata:' + JSON.stringify(sendInvitation) + '\n\n'
+      );
     }
   }
 
@@ -304,6 +402,16 @@ module.exports = class ChatApi {
       return null;
     }
     return results[0].email;
+  }
+
+  async getRoomById(roomId) {
+    const room = await this.db.query('SELECT * FROM rooms WHERE room_id = ?', [
+      roomId,
+    ]);
+    if (!room.length) {
+      return null;
+    }
+    return room[0];
   }
 
   async formatDate(date) {

@@ -12,18 +12,13 @@ function MessageBar({ roomId }) {
   async function sendMessage(event) {
     event.preventDefault();
     try {
-      const response = await fetch(`/api/send-message-to-room`, {
+      await fetch('/api/sendMessage', {
         method: 'POST',
-        credentials: 'include',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          roomId: roomId,
-          message: message,
-        }),
+        body: JSON.stringify({ message, roomId }),
       });
-      await response.json();
       setMessage('');
     } catch (error) {
       console.error(error.message);

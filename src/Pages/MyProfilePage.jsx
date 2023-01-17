@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Container, Row, Col, Form, Alert, Button } from 'react-bootstrap';
+
 import SearchBar from '../components/SearchBar';
 import Room from '../components/Room';
 import MessageBar from '../components/MessageBar';
@@ -12,7 +13,6 @@ import '../scss/App.scss';
 export default function MyProfilePage({ setLoginParent }) {
   const [user, setUser] = useState(null);
   const [activeList, setActiveList] = useState('rooms');
-  const [activeRoom, setActiveRoom] = useState('rooms');
   const [loggedIn, setLogin] = useState(false);
   const [showMessage, setShowMessage] = useState(false);
   const [createRoom, setCreateRoom] = useState(false);
@@ -21,15 +21,35 @@ export default function MyProfilePage({ setLoginParent }) {
   const [rooms, setRooms] = useState([]);
   const [room, setRoom] = useState('test');
   const [SSE, setSSE] = useState('');
+  const [invitations, setInvitations] = useState([]);
 
   let navigate = useNavigate();
 
   useEffect(() => {
     (async () => {
       await getMyProfile();
-      await getRooms();
-      await getUsers();
     })();
+    const sse = new EventSource(`/api/sse`, {
+      withCredentials: true,
+    });
+    sse.onopen = async (event) => {
+      console.log('connected');
+    };
+    sse.addEventListener('new-message', (message) => {
+      let data = JSON.parse(message.data);
+      console.log(data);
+      setRoomMessages((prevMessages) => [...prevMessages, data]);
+    });
+
+    sse.addEventListener('new-invitation', (invitation) => {
+      let data = JSON.parse(invitation.data);
+      console.log(data);
+      setInvitations((prevInvitations) => [...prevInvitations, data]);
+    });
+
+    return () => {
+      sse.close();
+    };
   }, []);
 
   async function getMyProfile() {
@@ -45,6 +65,9 @@ export default function MyProfilePage({ setLoginParent }) {
       setUser(data.user);
       setLogin(data.loggedIn);
       setLoginParent(data.loggedIn);
+      await getRooms();
+      await getUsers();
+      await getInvitations();
     } catch (error) {
       console.error(error.message);
     }
@@ -76,7 +99,22 @@ export default function MyProfilePage({ setLoginParent }) {
         },
       });
       const data = await response.json();
-      data[0] ? await joinRoom(data[0]) : null;
+      setRooms(data);
+    } catch (error) {
+      console.error(error.message);
+    }
+  }
+
+  async function getRooms() {
+    try {
+      const response = await fetch('/api/rooms', {
+        method: 'GET',
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+      const data = await response.json();
       setRooms(data);
     } catch (error) {
       console.error(error.message);
@@ -106,20 +144,34 @@ export default function MyProfilePage({ setLoginParent }) {
       setRoomMessages([]);
       setRoom(room);
 
-      const sse = new EventSource(`/api/sse/${room.roomId}`, {
-        withCredentials: true,
+      const response = await fetch(`/api/enterRoom/${room.roomId}`, {
+        method: 'GET',
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+        },
       });
-      sse.onopen = async () => {
-        await getMessages();
-        setSSE(sse);
-      };
-
-      sse.addEventListener('new-room-message', (message) => {
-        let data = JSON.parse(message.data);
-        setRoomMessages((prevMessages) => [...prevMessages, data]);
-      });
+      let data = await response.json();
+      user.moderator = data.moderator;
+      await getMessages();
     } catch (error) {
       console.error(error);
+    }
+  }
+
+  async function getInvitations() {
+    try {
+      const response = await fetch('/api/invitations', {
+        method: 'GET',
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+      const data = await response.json();
+      setInvitations(data);
+    } catch (error) {
+      console.error(error.message);
     }
   }
 
@@ -149,11 +201,13 @@ export default function MyProfilePage({ setLoginParent }) {
             <div className='content'>
               <div className='message-list'>
                 <SearchBar
-                  joinRoom={joinRoom}
                   rooms={rooms}
+                  joinRoom={joinRoom}
                   users={users}
                   activeList={activeList}
                   setActiveList={setActiveList}
+                  setInvitations={setInvitations}
+                  invitations={invitations}
                 />
                 <div className='newRoom' onClick={() => setCreateRoom(true)}>
                   + New Room
@@ -165,7 +219,7 @@ export default function MyProfilePage({ setLoginParent }) {
 
               <div className='chat'>
                 <div className='top'>
-                  <RoomHeader room={room} />
+                  <RoomHeader room={room} user={user} users={users} />
                 </div>
 
                 <div className='message-container' id='message-container'>

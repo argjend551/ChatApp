@@ -43,7 +43,7 @@ const CreateRoom = ({ setCreateRoom, joinRoom, getRooms, users }) => {
   };
   const inviteToRoom = async (roomId) => {
     try {
-      const response = await fetch(`/api/inviteToRoom`, {
+      await fetch(`/api/inviteToRoom`, {
         method: 'POST',
         credentials: 'include', // include cookies in the request
         headers: {
@@ -54,7 +54,6 @@ const CreateRoom = ({ setCreateRoom, joinRoom, getRooms, users }) => {
           invitedMembers: selectedUsers,
         }),
       });
-      const data = await response.json();
     } catch (error) {
       console.error(error);
     }
