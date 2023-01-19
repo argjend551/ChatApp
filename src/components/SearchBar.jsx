@@ -11,7 +11,7 @@ export default function SearchBar({
   activeList,
   setActiveList,
   invitations,
-  setInvitations,
+  getRooms,
 }) {
   const [searchQuery, setSearchQuery] = useState('');
   const [copyInvitations, setCopyInvitations] = useState('');
@@ -34,7 +34,10 @@ export default function SearchBar({
         (invitation) => invitation.invitationId !== invitationId
       )
     );
+    getRooms();
   }
+
+  const [showList, setShowList] = useState(false);
 
   return (
     <div className='list-top'>

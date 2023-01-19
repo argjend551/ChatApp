@@ -28,7 +28,6 @@ export default function LogInPage({ loggedIn }) {
   };
 
   async function login() {
-    console.log(password);
     try {
       const response = await fetch('/api/login', {
         method: 'POST',

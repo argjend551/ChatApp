@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
-import UsersDropDown from './UsersDropDown';
+import RoomMembersDropdown from './RoomMembersDropdown';
 
-function RoomHeader({ room, user, users }) {
+function RoomHeader({ room, user }) {
   const [selectedUsers, setSelectedUsers] = useState([]);
   const inviteToRoom = async () => {
     try {
@@ -23,14 +23,9 @@ function RoomHeader({ room, user, users }) {
   };
   return (
     <>
-      {room.roomName ? <div>{room.roomName}</div> : <></>}
+      {room.roomName ? <div>{room.roomName}</div>  : <></>}
       {user.moderator ? (
         <div className='dropdown-inHeader'>
-          <UsersDropDown
-            users={users}
-            setSelectedUsers={setSelectedUsers}
-            selectedUsers={selectedUsers}
-          />
           {selectedUsers.length > 0 && (
             <button onClick={() => inviteToRoom()}>
               Invite selected users

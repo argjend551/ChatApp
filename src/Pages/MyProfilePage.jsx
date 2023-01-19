@@ -2,12 +2,13 @@ import React, { useState } from 'react';
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Container, Row, Col, Form, Alert, Button } from 'react-bootstrap';
-
+import RoomMembersDropdown from '../components/RoomMembersDropDown';
 import SearchBar from '../components/SearchBar';
 import Room from '../components/Room';
 import MessageBar from '../components/MessageBar';
 import RoomHeader from '../components/RoomHeader';
 import CreateRoom from '../components/CreateRoom';
+import { BsFillChatDotsFill } from 'react-icons/bs';
 import '../scss/App.scss';
 
 export default function MyProfilePage({ setLoginParent }) {
@@ -19,15 +20,20 @@ export default function MyProfilePage({ setLoginParent }) {
   const [roomMessages, setRoomMessages] = useState([]);
   const [users, setUsers] = useState([]);
   const [rooms, setRooms] = useState([]);
-  const [room, setRoom] = useState('test');
-  const [SSE, setSSE] = useState('');
+  const [room, setRoom] = useState('');
   const [invitations, setInvitations] = useState([]);
+  const [banned, setBanned] = useState(false);
+  const [members, setMembers] = useState([]);
+  const [showLeftBar, setShowLeftBar] = useState(true);
 
   let navigate = useNavigate();
 
   useEffect(() => {
     (async () => {
       await getMyProfile();
+      if (window.innerWidth < 640) {
+        setShowLeftBar(false);
+      }
     })();
     const sse = new EventSource(`/api/sse`, {
       withCredentials: true,
@@ -37,14 +43,16 @@ export default function MyProfilePage({ setLoginParent }) {
     };
     sse.addEventListener('new-message', (message) => {
       let data = JSON.parse(message.data);
-      console.log(data);
       setRoomMessages((prevMessages) => [...prevMessages, data]);
     });
 
     sse.addEventListener('new-invitation', (invitation) => {
       let data = JSON.parse(invitation.data);
-      console.log(data);
       setInvitations((prevInvitations) => [...prevInvitations, data]);
+    });
+
+    sse.addEventListener('ban', (ban) => {
+      setBanned(true);
     });
 
     return () => {
@@ -99,22 +107,7 @@ export default function MyProfilePage({ setLoginParent }) {
         },
       });
       const data = await response.json();
-      setRooms(data);
-    } catch (error) {
-      console.error(error.message);
-    }
-  }
 
-  async function getRooms() {
-    try {
-      const response = await fetch('/api/rooms', {
-        method: 'GET',
-        credentials: 'include',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
-      const data = await response.json();
       setRooms(data);
     } catch (error) {
       console.error(error.message);
@@ -140,7 +133,6 @@ export default function MyProfilePage({ setLoginParent }) {
 
   async function joinRoom(room) {
     try {
-      setSSE('');
       setRoomMessages([]);
       setRoom(room);
 
@@ -152,7 +144,11 @@ export default function MyProfilePage({ setLoginParent }) {
         },
       });
       let data = await response.json();
-      user.moderator = data.moderator;
+      if (data && data.status == 403) {
+        return setBanned(true);
+      }
+      user.moderator = data;
+      setBanned(false);
       await getMessages();
     } catch (error) {
       console.error(error);
@@ -195,11 +191,20 @@ export default function MyProfilePage({ setLoginParent }) {
           <div className='main-veiw'>
             <div className='top-nav'>
               <>
-                <h1>{user.name}</h1>
+                <BsFillChatDotsFill
+                  className='showChats'
+                  onClick={() => setShowLeftBar(!showLeftBar)}
+                >
+                  Toggle
+                </BsFillChatDotsFill>
               </>
             </div>
             <div className='content'>
-              <div className='message-list'>
+              <div
+                className={`${
+                  showLeftBar ? 'message-list' : 'message-list-hide'
+                }`}
+              >
                 <SearchBar
                   rooms={rooms}
                   joinRoom={joinRoom}
@@ -208,6 +213,7 @@ export default function MyProfilePage({ setLoginParent }) {
                   setActiveList={setActiveList}
                   setInvitations={setInvitations}
                   invitations={invitations}
+                  getRooms={getRooms}
                 />
                 <div className='newRoom' onClick={() => setCreateRoom(true)}>
                   + New Room
@@ -216,13 +222,22 @@ export default function MyProfilePage({ setLoginParent }) {
                   Logout
                 </button>
               </div>
-
               <div className='chat'>
                 <div className='top'>
                   <RoomHeader room={room} user={user} users={users} />
                 </div>
 
                 <div className='message-container' id='message-container'>
+                  {room ? (
+                    <RoomMembersDropdown
+                      room={room}
+                      members={members}
+                      setMembers={setMembers}
+                      user={user}
+                    />
+                  ) : (
+                    <></>
+                  )}
                   {createRoom ? (
                     <CreateRoom
                       setCreateRoom={setCreateRoom}
@@ -236,12 +251,11 @@ export default function MyProfilePage({ setLoginParent }) {
                       roomMessages={roomMessages}
                       setRoom={setRoom}
                       setRoomMessages={setRoomMessages}
-                      setSSE={setSSE}
-                      SSE={SSE}
+                      banned={banned}
                     />
                   )}
                 </div>
-                <MessageBar roomId={room.roomId} />
+                <MessageBar roomId={room.roomId} banned={banned} />
               </div>
             </div>
           </div>

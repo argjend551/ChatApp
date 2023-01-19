@@ -58,6 +58,7 @@ const mysql = require('mysql2/promise');
         roomMembers_id VARCHAR(255) PRIMARY KEY,
         room_id VARCHAR(255) NOT NULL,
         member VARCHAR(255) NOT NULL,
+        banned BOOLEAN NOT NULL,
         FOREIGN KEY (room_id) REFERENCES rooms(room_id),
         FOREIGN KEY (member) REFERENCES users(user_id)
       )
