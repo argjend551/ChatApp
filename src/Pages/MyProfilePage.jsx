@@ -35,29 +35,41 @@ export default function MyProfilePage({ setLoginParent }) {
         setShowLeftBar(false);
       }
     })();
-    const sse = new EventSource(`/api/sse`, {
-      withCredentials: true,
-    });
-    sse.onopen = async (event) => {
-      console.log('connected');
-    };
-    sse.addEventListener('new-message', (message) => {
-      let data = JSON.parse(message.data);
-      setRoomMessages((prevMessages) => [...prevMessages, data]);
-    });
+    let sse;
+    // Check if SSE is already stored in local storage
+    const storedSSE = localStorage.getItem('sse');
 
-    sse.addEventListener('new-invitation', (invitation) => {
-      let data = JSON.parse(invitation.data);
-      setInvitations((prevInvitations) => [...prevInvitations, data]);
-    });
+    if (storedSSE) {
+      sse = JSON.parse(storedSSE);
+    } else {
+      // If not, create a new one
+      sse = new EventSource(`/api/sse`, {
+        withCredentials: true,
+      });
+      // Store it in local storage
+      localStorage.setItem('sse', JSON.stringify(sse));
+    }
 
-    sse.addEventListener('ban', (ban) => {
-      setBanned(true);
-    });
+    // sse.onopen = async (event) => {
+    //   console.log('connected');
+    // };
+    // sse.addEventListener('new-message', (message) => {
+    //   let data = JSON.parse(message.data);
+    //   setRoomMessages((prevMessages) => [...prevMessages, data]);
+    // });
 
-    return () => {
-      sse.close();
-    };
+    // sse.addEventListener('new-invitation', (invitation) => {
+    //   let data = JSON.parse(invitation.data);
+    //   setInvitations((prevInvitations) => [...prevInvitations, data]);
+    // });
+
+    // sse.addEventListener('ban', (ban) => {
+    //   setBanned(true);
+    // });
+
+    // return () => {
+    //   sse.close();
+    // };
   }, []);
 
   async function getMyProfile() {
@@ -190,14 +202,17 @@ export default function MyProfilePage({ setLoginParent }) {
         <>
           <div className='main-veiw'>
             <div className='top-nav'>
-              <>
+              <button className='login-btn' onClick={logout}>
+                Logout
+              </button>
+              <div className='showChats-wrapper'>
                 <BsFillChatDotsFill
                   className='showChats'
                   onClick={() => setShowLeftBar(!showLeftBar)}
                 >
                   Toggle
                 </BsFillChatDotsFill>
-              </>
+              </div>
             </div>
             <div className='content'>
               <div
@@ -212,15 +227,10 @@ export default function MyProfilePage({ setLoginParent }) {
                   activeList={activeList}
                   setActiveList={setActiveList}
                   setInvitations={setInvitations}
+                  setCreateRoom={setCreateRoom}
                   invitations={invitations}
                   getRooms={getRooms}
                 />
-                <div className='newRoom' onClick={() => setCreateRoom(true)}>
-                  + New Room
-                </div>
-                <button className='login-btn' onClick={logout}>
-                  Logout
-                </button>
               </div>
               <div className='chat'>
                 <div className='top'>

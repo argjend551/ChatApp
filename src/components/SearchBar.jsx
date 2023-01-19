@@ -12,6 +12,7 @@ export default function SearchBar({
   setActiveList,
   invitations,
   getRooms,
+  setCreateRoom,
 }) {
   const [searchQuery, setSearchQuery] = useState('');
   const [copyInvitations, setCopyInvitations] = useState('');
@@ -37,8 +38,6 @@ export default function SearchBar({
     getRooms();
   }
 
-  const [showList, setShowList] = useState(false);
-
   return (
     <div className='list-top'>
       <div className='search-container'>
@@ -51,6 +50,7 @@ export default function SearchBar({
         />
         <VscSearch />
       </div>
+
       <div
         className={`myChats${activeList === 'rooms' ? 'clicked' : ''}`}
         onClick={() => setActiveList('rooms')}
@@ -70,6 +70,9 @@ export default function SearchBar({
         onClick={() => setActiveList('invitations')}
       >
         Invitations <p className='invitation-length'>{invitations.length}</p>
+      </div>
+      <div className='newRoom' onClick={() => setCreateRoom(true)}>
+        + New Room
       </div>
       {activeList === 'rooms' &&
         rooms

@@ -9,22 +9,11 @@ main,
 #root {
   margin: 0;
   height: 100%;
+  overflow-x: hidden;
 }
 
 .spinner-border {
   display: flex;
   align-items: center;
   justify-content: center;
-}
-
-:root {
-  --grey-1: #2a2a2b;
-  --grey-2: #494848;
-  --grey-3: #131312;
-  --grey-4: #333334;
-  --grey-5: #bbb;
-  --color-1: #64af50; /*#1F09AC*/
-  --font-1: 'Roboto', sans-serif;
-  --primary: #fff !important;
-  --secondary: #242424 !important;
 }
