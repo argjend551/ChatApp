@@ -5,6 +5,7 @@ const mysql = require('mysql2/promise');
 const validator = require('validator');
 const InvalidInputException = require('../api/exceptions/InvalidInputException');
 const NotLoggedInException = require('../api/exceptions/NotLoggedInException');
+const NotAllowedException = require('../api/exceptions/NotAllowedException');
 
 module.exports = class UserApi {
   db = mysql.createPool(require('../secrets/dbCredentials.json'));
@@ -20,9 +21,7 @@ module.exports = class UserApi {
     this.app.post('/api/register', async (req, res, next) => {
       try {
         if (!acl('register', req)) {
-          res.status(405);
-          res.json({ _error: 'Not allowed!' });
-          return;
+          throw new NotAllowedException('Not allowed!', 403);
         }
         if (
           !req.body.email ||
@@ -85,6 +84,10 @@ module.exports = class UserApi {
 
     this.app.post('/api/login', async (req, res, next) => {
       try {
+        if (!acl('login', req)) {
+          throw new NotAllowedException('Not allowed!', 403);
+        }
+
         if (!req.body.email || !req.body.password) {
           throw new InvalidInputException(
             'Please provide a username and password',
@@ -93,7 +96,6 @@ module.exports = class UserApi {
         }
         const normalizedEmail = validator.normalizeEmail(req.body.email);
 
-        // Check if the user exists in the database
         const [user] = await this.db.query(
           `SELECT * FROM users WHERE email = ?`,
           [normalizedEmail]
@@ -126,6 +128,9 @@ module.exports = class UserApi {
 
     this.app.get('/api/myProfile', async (req, res, next) => {
       try {
+        if (!acl('myProfile', req)) {
+          throw new NotAllowedException('Not allowed!', 403);
+        }
         if (!req.session.user) {
           throw new NotLoggedInException('User is not logged in', 401);
         }
@@ -137,6 +142,9 @@ module.exports = class UserApi {
 
     this.app.post('/api/logout', async (req, res, next) => {
       try {
+        if (!acl('logout', req)) {
+          throw new NotAllowedException('Not allowed!', 403);
+        }
         if (!req.session.user) {
           throw new NotLoggedInException('User is not logged in', 401);
         }
@@ -150,6 +158,10 @@ module.exports = class UserApi {
 
     this.app.get('/api/users', async (req, res, next) => {
       try {
+        if (!acl('getUsers', req)) {
+          throw new NotAllowedException('Not allowed!', 403);
+        }
+
         if (!req.session.user) {
           throw new NotLoggedInException('User is not logged in', 401);
         }
@@ -161,27 +173,6 @@ module.exports = class UserApi {
         );
         const usersDTO = users[0].map((user) => ({
           id: user.user_id,
-          email: user.email,
-          name: user.name,
-        }));
-        res.json(usersDTO);
-      } catch (error) {
-        next(error);
-      }
-    });
-
-    this.app.get('/api/user', async (req, res, next) => {
-      try {
-        if (!req.session.user) {
-          throw new NotLoggedInException('User is not logged in', 401);
-        }
-
-        const currentUser = req.session.user.user_id;
-        const users = await this.db.query(
-          `SELECT * FROM users WHERE user_id != ?`,
-          [currentUser]
-        );
-        const usersDTO = users[0].map((user) => ({
           email: user.email,
           name: user.name,
         }));

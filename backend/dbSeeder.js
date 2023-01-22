@@ -47,6 +47,7 @@ const mysql = require('mysql2/promise');
         room_id VARCHAR(255) NOT NULL,
         message VARCHAR(255) NOT NULL,
         date DATETIME NOT NULL,
+        deleted_by_admin BOOLEAN,
         FOREIGN KEY (sender) REFERENCES users(user_id),
         FOREIGN KEY (room_id) REFERENCES rooms(room_id)
       )

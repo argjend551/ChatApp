@@ -15,7 +15,6 @@ export default function MyProfilePage({ setLoginParent }) {
   const [user, setUser] = useState(null);
   const [activeList, setActiveList] = useState('rooms');
   const [loggedIn, setLogin] = useState(false);
-  const [showMessage, setShowMessage] = useState(false);
   const [createRoom, setCreateRoom] = useState(false);
   const [roomMessages, setRoomMessages] = useState([]);
   const [users, setUsers] = useState([]);
@@ -35,41 +34,48 @@ export default function MyProfilePage({ setLoginParent }) {
         setShowLeftBar(false);
       }
     })();
-    let sse;
-    // Check if SSE is already stored in local storage
-    const storedSSE = localStorage.getItem('sse');
 
-    if (storedSSE) {
-      sse = JSON.parse(storedSSE);
-    } else {
-      // If not, create a new one
-      sse = new EventSource(`/api/sse`, {
-        withCredentials: true,
+    let sse = new EventSource(`/api/sse`, {
+      withCredentials: true,
+    });
+
+    sse.onopen = async (event) => {
+      console.log('connected');
+    };
+    sse.addEventListener('new-message', (message) => {
+      let data = JSON.parse(message.data);
+      setRoomMessages((prevMessages) => [...prevMessages, data]);
+    });
+
+    sse.addEventListener('new-invitation', (invitation) => {
+      let data = JSON.parse(invitation.data);
+      setInvitations((prevInvitations) => [...prevInvitations, data]);
+    });
+    sse.addEventListener('delete-message', (message) => {
+      let messageId = message.data;
+
+      setRoomMessages((prevMessages) => {
+        let updatedMessage = prevMessages.map((message) => {
+          if (message.id === messageId) {
+            return {
+              ...message,
+              message: 'This message was deleted by an admin',
+              deleted_by_admin: true,
+            };
+          }
+          return message;
+        });
+        return [...updatedMessage];
       });
-      // Store it in local storage
-      localStorage.setItem('sse', JSON.stringify(sse));
-    }
+    });
 
-    // sse.onopen = async (event) => {
-    //   console.log('connected');
-    // };
-    // sse.addEventListener('new-message', (message) => {
-    //   let data = JSON.parse(message.data);
-    //   setRoomMessages((prevMessages) => [...prevMessages, data]);
-    // });
+    sse.addEventListener('ban', (ban) => {
+      setBanned(true);
+    });
 
-    // sse.addEventListener('new-invitation', (invitation) => {
-    //   let data = JSON.parse(invitation.data);
-    //   setInvitations((prevInvitations) => [...prevInvitations, data]);
-    // });
-
-    // sse.addEventListener('ban', (ban) => {
-    //   setBanned(true);
-    // });
-
-    // return () => {
-    //   sse.close();
-    // };
+    return () => {
+      sse.close();
+    };
   }, []);
 
   async function getMyProfile() {
@@ -85,6 +91,7 @@ export default function MyProfilePage({ setLoginParent }) {
       setUser(data.user);
       setLogin(data.loggedIn);
       setLoginParent(data.loggedIn);
+      if (!data.user) return;
       await getRooms();
       await getUsers();
       await getInvitations();
@@ -183,28 +190,12 @@ export default function MyProfilePage({ setLoginParent }) {
     }
   }
 
-  async function logout() {
-    try {
-      const response = await fetch('api/logout', {
-        method: 'POST',
-        credentials: 'include',
-      });
-      await response.json();
-
-      setShowMessage(true);
-      navigate('/');
-    } catch (error) {}
-  }
-
   return (
     <div className='container'>
       {loggedIn ? (
         <>
           <div className='main-veiw'>
             <div className='top-nav'>
-              <button className='login-btn' onClick={logout}>
-                Logout
-              </button>
               <div className='showChats-wrapper'>
                 <BsFillChatDotsFill
                   className='showChats'
@@ -237,7 +228,12 @@ export default function MyProfilePage({ setLoginParent }) {
                   <RoomHeader room={room} user={user} users={users} />
                 </div>
 
-                <div className='message-container' id='message-container'>
+                <div
+                  className={`${
+                    room ? 'message-container' : 'message-container-noRoom'
+                  }`}
+                  id='message-container'
+                >
                   {room ? (
                     <RoomMembersDropdown
                       room={room}
@@ -262,6 +258,7 @@ export default function MyProfilePage({ setLoginParent }) {
                       setRoom={setRoom}
                       setRoomMessages={setRoomMessages}
                       banned={banned}
+                      user={user}
                     />
                   )}
                 </div>

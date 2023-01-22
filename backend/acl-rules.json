@@ -20,11 +20,102 @@
     },
     "getUsers": {
       "get": true
+    },
+    "sse": {
+      "get": true
+    },
+    "enterRoom": {
+      "get": true
+    },
+    "rooms": {
+      "get": true
+    },
+    "createRoom": {
+      "post": true
+    },
+    "sendMessage": {
+      "post": true
+    },
+    "getAllMessages": {
+      "get": true
+    },
+    "inviteToRoom": {
+      "post": true
+    },
+    "handleInvitation": {
+      "post": true
+    },
+    "invitations": {
+      "get": true
+    },
+    "banUser": {
+      "post": true
+    },
+    "getRoomMembers": {
+      "get": true
     }
   },
   "admin": {
-    "users": {
+    "login": {
+      "get": true,
+      "post": true
+    },
+    "myProfile": {
       "get": true
+    },
+    "logout": {
+      "post": true
+    },
+    "getUsers": {
+      "get": true
+    },
+    "sse": {
+      "get": true
+    },
+    "enterRoom": {
+      "get": true
+    },
+    "rooms": {
+      "get": true
+    },
+    "createRoom": {
+      "post": true
+    },
+    "sendMessage": {
+      "post": true
+    },
+    "getAllMessages": {
+      "get": true
+    },
+    "inviteToRoom": {
+      "post": true
+    },
+    "handleInvitation": {
+      "post": true
+    },
+    "invitations": {
+      "get": true
+    },
+    "banUser": {
+      "post": true
+    },
+    "getRoomMembers": {
+      "get": true
+    },
+    "getAllRoomsAdmin": {
+      "get": true
+    },
+    "enterRoomAdmin": {
+      "get": true
+    },
+    "getAllMessagesAdmin": {
+      "get": true
+    },
+    "sendMessageAdmin": {
+      "post": true
+    },
+    "deleteMessage": {
+      "delete": true
     }
   }
 }

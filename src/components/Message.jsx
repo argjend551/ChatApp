@@ -1,10 +1,43 @@
-import React from 'react';
+import React, { useState } from 'react';
+import { BsFillTrashFill } from 'react-icons/bs';
 
-const Message = ({ text, sentByMe, sender, date }) => {
+const Message = ({
+  text,
+  sentByMe,
+  sender,
+  date,
+  admin,
+  messageId,
+  roomId,
+  deletedByAdmin,
+  user,
+}) => {
+  async function deleteMessage(messageId) {
+    await fetch('/api/deleteMessage', {
+      method: 'DELETE',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ messageId, roomId }),
+    });
+  }
+
   return (
-    <div className={`${sentByMe ? 'left-msg' : 'right-msg'}`}>
+    <div
+      className={`${sentByMe ? 'left-msg' : 'right-msg'} ${
+        deletedByAdmin ? 'deleted-message' : ''
+      }`}
+    >
       <div className={`${sentByMe ? 'message-sender' : 'message-reciever'}`}>
-        <p className={`${sentByMe ? 'sender' : 'reciever'}`}>{sender}: </p>
+        {user.role == 'admin' ? (
+          <BsFillTrashFill
+            onClick={() => deleteMessage(messageId)}
+            className='trashcan'
+          />
+        ) : null}
+        <p className={`${sentByMe ? 'sender' : 'reciever'}`}>{sender} </p>
+
+        {admin ? <p className='adminTag'>Admin</p> : <></>}
         <p className='message-text'>{text}</p>
         <p className={`${sentByMe ? 'sender-time' : 'reciever-time'}`}>
           {date}

@@ -3,7 +3,9 @@ import { VscSearch } from 'react-icons/vsc';
 import { useState } from 'react';
 import { AiOutlineCheck } from 'react-icons/ai';
 import { AiOutlineClose } from 'react-icons/ai';
+import { BiLogOut } from 'react-icons/bi';
 import { useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 export default function SearchBar({
   joinRoom,
   rooms,
@@ -15,8 +17,8 @@ export default function SearchBar({
   setCreateRoom,
 }) {
   const [searchQuery, setSearchQuery] = useState('');
-  const [copyInvitations, setCopyInvitations] = useState('');
-
+  const [copyInvitations, setCopyInvitations] = useState([]);
+  let navigate = useNavigate();
   useEffect(() => {
     setCopyInvitations([...invitations]);
   }, [invitations]);
@@ -36,6 +38,16 @@ export default function SearchBar({
       )
     );
     getRooms();
+  }
+  async function logout() {
+    try {
+      await fetch('api/logout', {
+        method: 'POST',
+        credentials: 'include',
+      });
+
+      navigate('/');
+    } catch (error) {}
   }
 
   return (
@@ -69,7 +81,11 @@ export default function SearchBar({
         }`}
         onClick={() => setActiveList('invitations')}
       >
-        Invitations <p className='invitation-length'>{invitations.length}</p>
+        Invitations{' '}
+        <p className='invitation-length'>{copyInvitations.length}</p>
+      </div>
+      <div className='logout-btn' onClick={() => logout()}>
+        <BiLogOut /> Logout
       </div>
       <div className='newRoom' onClick={() => setCreateRoom(true)}>
         + New Room
