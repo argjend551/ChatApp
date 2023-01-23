@@ -3,7 +3,7 @@ import { Container, Row, Col, Form, Alert, Button } from 'react-bootstrap';
 import { useEffect, useState } from 'react';
 import { FaInbox } from 'react-icons/fa';
 
-export default function Room({ roomMessages, banned, room, user }) {
+const Room = ({ roomMessages, banned, room, user }) => {
   useEffect(() => {
     const container = document.getElementById('message-container');
     container.scrollTop = container.scrollHeight;
@@ -48,4 +48,6 @@ export default function Room({ roomMessages, banned, room, user }) {
       )}
     </>
   );
-}
+};
+
+export default Room;

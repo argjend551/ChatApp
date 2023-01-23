@@ -1,5 +1,4 @@
-import React, { useState } from 'react';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Container, Row, Col, Form, Alert, Button } from 'react-bootstrap';
 import RoomMembersDropdown from '../components/RoomMembersDropDown';
@@ -11,7 +10,7 @@ import CreateRoom from '../components/CreateRoom';
 import { BsFillChatDotsFill } from 'react-icons/bs';
 import '../scss/App.scss';
 
-export default function MyProfilePage({ setLoginParent }) {
+const MyProfilePage = ({ setLoginParent }) => {
   const [user, setUser] = useState(null);
   const [activeList, setActiveList] = useState('rooms');
   const [loggedIn, setLogin] = useState(false);
@@ -67,6 +66,11 @@ export default function MyProfilePage({ setLoginParent }) {
         });
         return [...updatedMessage];
       });
+    });
+
+    sse.addEventListener('join-room', (data) => {
+      let newMember = JSON.parse(data.data);
+      setMembers((prevMembers) => [...prevMembers, newMember]);
     });
 
     sse.addEventListener('ban', (ban) => {
@@ -167,6 +171,7 @@ export default function MyProfilePage({ setLoginParent }) {
         return setBanned(true);
       }
       user.moderator = data;
+      console.log(user.moderator);
       setBanned(false);
       await getMessages();
     } catch (error) {
@@ -211,6 +216,7 @@ export default function MyProfilePage({ setLoginParent }) {
                   showLeftBar ? 'message-list' : 'message-list-hide'
                 }`}
               >
+                <h4 className='nameTag'>{user.name}</h4>
                 <SearchBar
                   rooms={rooms}
                   joinRoom={joinRoom}
@@ -250,6 +256,7 @@ export default function MyProfilePage({ setLoginParent }) {
                       joinRoom={joinRoom}
                       getRooms={getRooms}
                       users={users}
+                      setUsers={setUsers}
                     />
                   ) : (
                     <Room
@@ -278,4 +285,5 @@ export default function MyProfilePage({ setLoginParent }) {
       {''}
     </div>
   );
-}
+};
+export default MyProfilePage;

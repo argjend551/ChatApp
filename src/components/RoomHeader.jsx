@@ -1,13 +1,12 @@
 import React, { useState } from 'react';
-import RoomMembersDropdown from './RoomMembersDropdown';
 
-function RoomHeader({ room, user }) {
+const RoomHeader = ({ room, user }) => {
   const [selectedUsers, setSelectedUsers] = useState([]);
   const inviteToRoom = async () => {
     try {
       const response = await fetch(`/api/inviteToRoom`, {
         method: 'POST',
-        credentials: 'include', // include cookies in the request
+        credentials: 'include',
         headers: {
           'Content-Type': 'application/json',
         },
@@ -23,7 +22,7 @@ function RoomHeader({ room, user }) {
   };
   return (
     <>
-      {room.roomName ? <div>{room.roomName}</div>  : <></>}
+      {room.roomName ? <div>{room.roomName}</div> : <></>}
       {user.moderator ? (
         <div className='dropdown-inHeader'>
           {selectedUsers.length > 0 && (
@@ -37,6 +36,6 @@ function RoomHeader({ room, user }) {
       )}
     </>
   );
-}
+};
 
 export default RoomHeader;

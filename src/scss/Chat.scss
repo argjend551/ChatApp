@@ -64,7 +64,6 @@
 }
 
 .adminTag {
-  position: relative;
   margin: 2px 6px 2px 0;
   padding: 1px 20px 1px 8px;
   font-size: inherit;
@@ -76,6 +75,35 @@
   transition: background-color 0.3s ease;
   cursor: default;
   display: inline-flex;
+}
+.nameTag {
+  padding: 3px 20px 1px 8px;
+  font-weight: 400;
+  text-align: center;
+  color: black;
+  background-color: #ffffff;
+  transition: background-color 0.3s ease;
+  cursor: default;
+  display: inline-flex;
+  width: 100%;
+  justify-content: center;
+  align-content: center;
+  align-items: center;
+}
+
+.moderatorTag {
+  padding: 3px 20px 1px 8px;
+  font-weight: 400;
+  text-align: center;
+  color: black;
+  background-color: #3867d6;
+  transition: background-color 0.3s ease;
+  cursor: default;
+  display: inline-flex;
+  width: 100%;
+  justify-content: center;
+  align-content: center;
+  align-items: center;
 }
 
 .trashcan {
@@ -239,6 +267,16 @@
   display: flex;
   flex-direction: row;
   justify-content: center;
+  max-height: 50%;
+  align-items: flex-end;
+}
+.message-bar-banned form {
+  border-radius: 5px;
+}
+
+.message-bar-banned input {
+  width: 100%;
+  height: 50%;
 }
 
 .icon-container {
@@ -476,15 +514,92 @@
 }
 
 .message-container-noRoom {
-  opacity: 0.3;
   display: flex;
   justify-content: center;
   align-items: center;
   flex-direction: column;
+  color: gray;
+}
+
+.userSearchDropdown {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  font-size: 20px;
+  background: white;
+  margin-bottom: 10px;
+  margin-top: 10px;
+  border: 0.5px solid #cbcaca;
+  margin-left: 20px;
+}
+.userSearchDropdown input {
+  border: none;
+  outline: none;
+}
+.userSearchDropdown button {
+  background-color: white;
+  box-shadow: none;
+  border: none;
+  line-height: initial;
+}
+.userSearchDropdown button:hover {
+  background-color: white !important;
+  box-shadow: none;
+  border: none;
+  line-height: initial;
+}
+.userSearchDropdown button:active {
+  background-color: white !important;
+  box-shadow: none;
+  border: none;
+  line-height: initial;
+}
+
+.userSearchDropdown button:focus {
+  background-color: white !important;
+  box-shadow: none;
+  border: none;
+  line-height: initial;
+}
+.userSearchDropdown button:checked {
+  background-color: white !important;
+  box-shadow: none;
+  border: none;
+  line-height: initial;
+}
+
+.RoomName input {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  font-size: 20px;
+  background: white;
+  margin-bottom: 10px;
+  margin-top: 10px;
+  border: 0.5px solid #cbcaca;
+}
+.RoomName input:focus {
+  background-color: white !important;
+  box-shadow: none;
+  border: 0.5px solid #cbcaca;
+  line-height: initial;
+}
+
+.dropdown-toggle {
+  background-color: white !important;
+  box-shadow: none;
+  border: none;
+  line-height: initial;
+}
+
+.selected-user-dropdown {
+  display: flex;
+  flex-direction: row;
+  gap: 10px;
 }
 
 .no-room-icon {
-  color: black;
+  color: gray;
   width: 100px;
   height: 108px;
 }
@@ -675,7 +790,7 @@
   background-color: white;
   width: 100%;
   box-shadow: 0px 8px 16px 0px rgba(0, 0, 0, 0.2);
-  z-index: 1;
+  z-index: 999;
 }
 
 .RoomMembers-dropdown .open {
@@ -683,30 +798,48 @@
   animation: slideIn 0.5s ease-in-out;
   position: relative;
   height: 100%;
-  gap: 20px;
-  flex-direction: row;
-  align-content: center;
-  justify-content: flex-start;
+  flex-direction: column;
 }
 
 .ban {
-  background-color: red;
+  background-color: #d9534f;
+  color: white;
+  padding: 10px 20px;
+  border-radius: 20px;
   cursor: pointer;
+  transition: all 0.2s ease-in-out;
+  text-transform: uppercase;
+  font-weight: bold;
+}
+.ban:hover {
+  background-color: #c9302c;
 }
 
 .BANNED {
   background-color: gray;
   pointer-events: none;
+  color: white;
+  padding: 10px 20px;
+  border-radius: 20px;
+  transition: all 0.2s ease-in-out;
+  text-transform: uppercase;
+  font-weight: bold;
 }
 
 .member-wrapper {
   display: flex;
   flex-direction: row;
-  align-items: center;
-  padding: 10px;
+  padding: 20px;
   width: 100%;
   flex-wrap: nowrap;
-  justify-content: center;
+  justify-content: space-between;
+  background-color: #f7f7f7;
+  box-shadow: 0px 8px 16px 0px rgb(0 0 0 / 20%);
+  transition: all 0.2s ease-in-out;
+  border-bottom: solid #dbdbdb;
+}
+.member-wrapper:hover {
+  background-color: #e6e6e6;
 }
 
 .RoomMembers-dropdown .dropdown-close {

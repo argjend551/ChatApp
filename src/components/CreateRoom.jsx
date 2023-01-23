@@ -4,7 +4,7 @@ import Modal from 'react-bootstrap/Modal';
 import UsersDropDown from './UsersDropDown';
 import Alert from 'react-bootstrap/Alert';
 
-const CreateRoom = ({ setCreateRoom, joinRoom, getRooms, users }) => {
+const CreateRoom = ({ setCreateRoom, joinRoom, getRooms, users, setUsers }) => {
   const [roomName, setRoomName] = useState('');
   const [selectedUsers, setSelectedUsers] = useState([]);
 
@@ -45,7 +45,7 @@ const CreateRoom = ({ setCreateRoom, joinRoom, getRooms, users }) => {
     try {
       await fetch(`/api/inviteToRoom`, {
         method: 'POST',
-        credentials: 'include', // include cookies in the request
+        credentials: 'include',
         headers: {
           'Content-Type': 'application/json',
         },
@@ -68,7 +68,7 @@ const CreateRoom = ({ setCreateRoom, joinRoom, getRooms, users }) => {
 
         <Modal.Body>
           <form>
-            <div className='form-group'>
+            <div className='RoomName'>
               <label>Room Name</label>
               <input
                 type='text'
@@ -84,6 +84,7 @@ const CreateRoom = ({ setCreateRoom, joinRoom, getRooms, users }) => {
                 users={users}
                 setSelectedUsers={setSelectedUsers}
                 selectedUsers={selectedUsers}
+                setUsers={setUsers}
               />
             </div>
           </form>

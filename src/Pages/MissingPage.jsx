@@ -2,7 +2,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import '../scss/App.scss';
 
-export default function MissingPage() {
+const MissingPage = () => {
   return (
     <div className='missing-page-container'>
       <h1 className='missing-page-title'>404 - Page Not Found</h1>
@@ -12,4 +12,6 @@ export default function MissingPage() {
       </p>
     </div>
   );
-}
+};
+
+export default MissingPage;

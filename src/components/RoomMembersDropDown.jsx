@@ -1,7 +1,10 @@
 import React, { useState } from 'react';
 import { useEffect } from 'react';
 import { AiOutlineClose } from 'react-icons/ai';
+
 const RoomMembersDropdown = ({ room, members, setMembers, user }) => {
+  const [moderator, setModerator] = useState('');
+  const [isOpen, setIsOpen] = useState(false);
   useEffect(() => {
     (async () => {
       setMembers([]);
@@ -14,6 +17,7 @@ const RoomMembersDropdown = ({ room, members, setMembers, user }) => {
       });
       const data = await response.json();
       setMembers(data.members);
+      setModerator(data.moderator);
     })();
   }, [room]);
 
@@ -38,8 +42,6 @@ const RoomMembersDropdown = ({ room, members, setMembers, user }) => {
     );
   }
 
-  const [isOpen, setIsOpen] = useState(false);
-
   return (
     <div className='RoomMembers-dropdown'>
       {isOpen ? (
@@ -52,12 +54,13 @@ const RoomMembersDropdown = ({ room, members, setMembers, user }) => {
         <span className='dropdown-close'>
           <AiOutlineClose onClick={() => setIsOpen(!isOpen)} />
         </span>
-        <div>
+        <>
+          <div className='moderatorTag'>Moderator: {moderator}</div>
           {members.length ? (
             members.map((member, index) => (
               <div key={index} className='member-wrapper'>
-                <div className='room'>{member.username}</div>
-                {user.moderator ? (
+                <div>{member.username}</div>
+                {user.moderator.moderator || user.role === 'admin' ? (
                   <div onClick={() => ban(member.id, room.roomId)}>
                     <p className={`${member.banned ? 'BANNED' : 'ban'}`}>
                       {member.banned ? 'BANNED' : 'Ban'}
@@ -71,7 +74,7 @@ const RoomMembersDropdown = ({ room, members, setMembers, user }) => {
           ) : (
             <p>No members in the room</p>
           )}
-        </div>
+        </>
       </div>
     </div>
   );

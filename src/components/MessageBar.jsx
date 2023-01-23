@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Form, Button, FormControl } from 'react-bootstrap';
 import { IoMdSend } from 'react-icons/io';
 
-function MessageBar({ roomId, banned }) {
+const MessageBar = ({ roomId, banned }) => {
   let [message, setMessage] = useState('');
 
   function handleChange(event) {
@@ -28,7 +28,7 @@ function MessageBar({ roomId, banned }) {
   return (
     <form
       onSubmit={sendMessage}
-      className={`${banned ? 'message-bar-banned' : 'message-bar'}`}
+      className={`${banned || !roomId ? 'message-bar-banned' : 'message-bar'}`}
     >
       <input
         type='text'
@@ -41,6 +41,6 @@ function MessageBar({ roomId, banned }) {
       </button>
     </form>
   );
-}
+};
 
 export default MessageBar;

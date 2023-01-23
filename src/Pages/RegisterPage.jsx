@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import Alert from 'react-bootstrap/Alert';
 import '../scss/App.scss';
 
-export default function RegisterPage() {
+const RegisterPage = () => {
   const [firstName, setFirstName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -148,4 +148,5 @@ export default function RegisterPage() {
       </div>
     </div>
   );
-}
+};
+export default RegisterPage;

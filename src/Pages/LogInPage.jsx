@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import Alert from 'react-bootstrap/Alert';
 import '../scss/App.scss';
 
-export default function LogInPage({ loggedIn }) {
+const LogInPage = ({ loggedIn }) => {
   const [email, setEmail] = useState('');
   const [password, setpassword] = useState('');
   const [showWrongLogin, setWrongLogin] = useState(false);
@@ -135,4 +135,5 @@ export default function LogInPage({ loggedIn }) {
       </div>
     </div>
   );
-}
+};
+export default LogInPage;

@@ -383,6 +383,7 @@ module.exports = class ChatApi {
     this.app.post('/api/handleInvitation', async (req, res, next) => {
       try {
         const clientId = req.session.user.user_id;
+        const clientName = req.session.user.name;
         if (!clientId) {
           throw new NotLoggedInException('User is not logged in', 401);
         }
@@ -417,6 +418,19 @@ module.exports = class ChatApi {
           [invitationId]
         );
 
+        const user = {
+          id: clientId,
+          username: clientName,
+          banned: false,
+        };
+
+        this.connections.forEach((connection) => {
+          if (connection.room === roomId) {
+            connection.res.write(
+              `event: join-room\ndata:${JSON.stringify(user)}\n\n`
+            );
+          }
+        });
         res.send({ message: 'Invitation accepted successfully' });
       } catch (err) {
         next();
@@ -513,13 +527,16 @@ module.exports = class ChatApi {
         if (!acl('getRoomMembers', req)) {
           throw new NotAllowedException('Not allowed!', 403);
         }
+
         const roomId = req.params.roomId;
+
         const [results] = await this.db.query(
           `SELECT * FROM rooms
           LEFT JOIN roommembers ON rooms.room_id = roommembers.room_id
           WHERE rooms.room_id = ?`,
           [roomId]
         );
+
         if (!results[0].member) {
           return;
         }

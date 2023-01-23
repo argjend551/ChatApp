@@ -6,7 +6,7 @@ import { AiOutlineClose } from 'react-icons/ai';
 import { BiLogOut } from 'react-icons/bi';
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-export default function SearchBar({
+const SearchBar = ({
   joinRoom,
   rooms,
   users,
@@ -15,9 +15,11 @@ export default function SearchBar({
   invitations,
   getRooms,
   setCreateRoom,
-}) {
+}) => {
   const [searchQuery, setSearchQuery] = useState('');
+
   const [copyInvitations, setCopyInvitations] = useState([]);
+
   let navigate = useNavigate();
   useEffect(() => {
     setCopyInvitations([...invitations]);
@@ -137,4 +139,6 @@ export default function SearchBar({
           ))}
     </div>
   );
-}
+};
+
+export default SearchBar;
