@@ -173,9 +173,10 @@ const MyProfilePage = ({ setLoginParent }) => {
       user.moderator = data;
       console.log(user.moderator);
       setBanned(false);
-      await getMessages();
     } catch (error) {
       console.error(error);
+    } finally {
+      await getMessages();
     }
   }
 
@@ -246,6 +247,8 @@ const MyProfilePage = ({ setLoginParent }) => {
                       members={members}
                       setMembers={setMembers}
                       user={user}
+                      users={users}
+                      setUsers={setUsers}
                     />
                   ) : (
                     <></>

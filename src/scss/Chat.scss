@@ -95,8 +95,8 @@
   padding: 3px 20px 1px 8px;
   font-weight: 400;
   text-align: center;
-  color: black;
-  background-color: #3867d6;
+  color: white;
+  background-color: #3b3e49;
   transition: background-color 0.3s ease;
   cursor: default;
   display: inline-flex;
@@ -585,6 +585,26 @@
   line-height: initial;
 }
 
+.inviteAMember {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.inviteToRoomBTN {
+      display: flex;
+    justify-content: center;
+    margin-bottom: 5px;
+}
+
+.inviteAmembertext {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+  margin-top: 10px;
+}
 .dropdown-toggle {
   background-color: white !important;
   box-shadow: none;
