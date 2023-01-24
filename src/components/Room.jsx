@@ -42,7 +42,7 @@ const Room = ({ roomMessages, banned, room, user }) => {
           <span>
             <FaInbox className='no-room-icon' />
           </span>
-          <h3>Choose a conversation from the left</h3>
+          <h4>Choose a conversation from the left</h4>
         </>
       )}
     </>

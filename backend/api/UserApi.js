@@ -39,6 +39,15 @@ module.exports = class UserApi {
           );
         }
 
+        const pattern = /^(?=.*[A-Z])(?=.*[!@#$%^&*])(?=.{8,})/;
+
+        if (!pattern.test(req.body.password)) {
+          throw new InvalidInputException(
+            'Password must be at least 8 characters, contain one capital letter, and one symbol',
+            400
+          );
+        }
+
         const normalizedEmail = validator.normalizeEmail(req.body.email);
 
         if (!validator.isEmail(normalizedEmail)) {
@@ -108,8 +117,8 @@ module.exports = class UserApi {
         if (user[0].last_attempt) {
           const currentTime = new Date().getTime();
           const lastAttemptTime = new Date(user[0].last_attempt).getTime();
-          const oneHourInMilliseconds = 60 * 60 * 1000;
-          if (currentTime - lastAttemptTime > oneHourInMilliseconds) {
+          const oneMinuteInMilliseconds = 60 * 1000;
+          if (currentTime - lastAttemptTime > oneMinuteInMilliseconds) {
             user[0].login_attempts = 0;
             await this.db.query(
               `UPDATE users SET login_attempts = 0, last_attempt = null WHERE email = ?`,
@@ -124,7 +133,7 @@ module.exports = class UserApi {
             [new Date(), normalizedEmail]
           );
           throw new InvalidInputException(
-            'Too many login attempts, account locked for 1 hour',
+            'Too many login attempts, account locked for 1 minute',
             400
           );
         }
