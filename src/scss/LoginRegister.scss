@@ -69,3 +69,11 @@
 .register-container form div {
   margin: 20px;
 }
+.alert-danger {
+  display: flex;
+  --bs-alert-color: #842029;
+  --bs-alert-bg: #f8d7da;
+  --bs-alert-border-color: #f5c2c7;
+  justify-content: center;
+  align-items: center;
+}

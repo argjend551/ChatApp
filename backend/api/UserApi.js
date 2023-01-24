@@ -20,7 +20,6 @@ module.exports = class UserApi {
 
     this.app.post('/api/register', async (req, res, next) => {
       try {
-        console.log(req.session.user);
         if (!acl('register', req)) {
           throw new NotAllowedException('Not allowed!', 403);
         }
@@ -106,12 +105,40 @@ module.exports = class UserApi {
           throw new InvalidInputException('Invalid username or password', 400);
         }
 
+        if (user[0].last_attempt) {
+          const currentTime = new Date().getTime();
+          const lastAttemptTime = new Date(user[0].last_attempt).getTime();
+          const oneHourInMilliseconds = 60 * 60 * 1000;
+          if (currentTime - lastAttemptTime > oneHourInMilliseconds) {
+            user[0].login_attempts = 0;
+            await this.db.query(
+              `UPDATE users SET login_attempts = 0, last_attempt = null WHERE email = ?`,
+              [normalizedEmail]
+            );
+          }
+        }
+
+        if (user[0].login_attempts >= 3) {
+          await this.db.query(
+            `UPDATE users SET last_attempt = ? WHERE email = ?`,
+            [new Date(), normalizedEmail]
+          );
+          throw new InvalidInputException(
+            'Too many login attempts, account locked for 1 hour',
+            400
+          );
+        }
+
         const isMatch = bcrypt.compareSync(
           req.body.password + salt + pepper,
           user[0].password
         );
 
         if (!isMatch) {
+          await this.db.query(
+            `UPDATE users SET login_attempts = login_attempts + 1 WHERE email = ?`,
+            [normalizedEmail]
+          );
           throw new InvalidInputException('Invalid username or password', 400);
         }
 
