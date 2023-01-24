@@ -193,6 +193,24 @@ const MyProfilePage = ({ setLoginParent, loggedIn }) => {
     }
   }
 
+  const [width, setWidth] = useState(window.innerWidth);
+
+  useEffect(() => {
+    function handleResize() {
+      setWidth(window.innerWidth);
+    }
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, [width]);
+
+  useEffect(() => {
+    if (width < 600) {
+      setShowLeftBar(false);
+    } else {
+      setShowLeftBar(true);
+    }
+  }, [width]);
+
   return (
     <div className='container'>
       {loggedIn ? (
