@@ -1,9 +1,8 @@
-import React, { useState } from 'react';
-import { useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { AiOutlineClose } from 'react-icons/ai';
+import { FaUsers } from 'react-icons/fa';
 import UsersDropDown from './UsersDropDown';
-import { Button } from 'react-bootstrap';
-
+import { Container, Row, Col, Button } from 'react-bootstrap';
 const RoomMembersDropdown = ({
   room,
   members,
@@ -16,9 +15,11 @@ const RoomMembersDropdown = ({
   const [isOpen, setIsOpen] = useState(false);
   const [moderatorIsReady, setModeratorIsReady] = useState(false);
   const [selectedUsers, setSelectedUsers] = useState([]);
+
   useEffect(() => {
     (async () => {
       try {
+        setIsOpen(false);
         setMembers([]);
         const response = await fetch(`/api/getRoomMembers/${room.roomId}`, {
           method: 'GET',
@@ -80,65 +81,82 @@ const RoomMembersDropdown = ({
   }
 
   return (
-    <div className='RoomMembers-dropdown'>
-      {isOpen ? (
-        <></>
-      ) : (
-        <div onClick={() => setIsOpen(!isOpen)}>Room Members</div>
-      )}
-
-      <div className={`dropdown-content ${isOpen ? 'open' : ''}`}>
-        <span className='dropdown-close'>
-          <AiOutlineClose onClick={() => setIsOpen(!isOpen)} />
-        </span>
-        <>
-          <div className='moderatorTag'>Moderator: {moderator}</div>
-          {members.length && moderatorIsReady ? (
-            members.map((member, index) => (
-              <div key={index} className='member-wrapper'>
-                <div>{member.username}</div>
-                {user.moderator.moderator || user.role === 'admin' ? (
-                  <div onClick={() => ban(member.id, room.roomId)}>
-                    <p className={`${member.banned ? 'BANNED' : 'ban'}`}>
-                      {member.banned ? 'BANNED' : 'Ban'}
-                    </p>
-                  </div>
-                ) : (
-                  <></>
-                )}
-              </div>
-            ))
+    <Container className='RoomMembers-dropdown'>
+      <Row>
+        <Col xs={12}>
+          {isOpen ? (
+            <></>
           ) : (
-            <p>No members in the room</p>
-          )}
-        </>
-        {(moderatorIsReady && user.moderator.moderator) ||
-        user.role === 'admin' ? (
-          <>
-            <p className='inviteAmembertext'>Invite an member</p>
-            <div className='inviteAMember'>
-              <UsersDropDown
-                users={users}
-                setUsers={setUsers}
-                selectedUsers={selectedUsers}
-                setSelectedUsers={setSelectedUsers}
+            <div className='roomMember-icon-wrapper'>
+              <FaUsers
+                className='roomMembers-icon'
+                onClick={() => setIsOpen(!isOpen)}
               />
             </div>
-            <div className='inviteToRoomBTN'>
-              <Button
-                variant='primary'
-                disabled={!selectedUsers.length}
-                onClick={() => inviteToRoom(room.roomId)}
-              >
-                Invite to room
-              </Button>
-            </div>
-          </>
-        ) : (
-          <></>
-        )}
-      </div>
-    </div>
+          )}
+        </Col>
+        <Col xs={12}>
+          <div className={`dropdown-content ${isOpen ? 'open' : ''}`}>
+            <span className='dropdown-close'>
+              <AiOutlineClose onClick={() => setIsOpen(!isOpen)} />
+            </span>
+            <>
+              <div className='moderatorTag'>Moderator: {moderator}</div>
+              {members.length && moderatorIsReady ? (
+                members.map((member, index) => (
+                  <div key={index} className='member-wrapper'>
+                    <div>
+                      {member.username}{' '}
+                      {member.admin ? <p className='adminTag'>Admin</p> : <></>}
+                    </div>
+                    {user.moderator.moderator || user.role === 'admin' ? (
+                      <div onClick={() => ban(member.id, room.roomId)}>
+                        {!member.admin ? (
+                          <p className={`${member.banned ? 'BANNED' : 'ban'}`}>
+                            {member.banned ? 'BANNED' : 'Ban'}
+                          </p>
+                        ) : (
+                          <></>
+                        )}
+                      </div>
+                    ) : (
+                      <></>
+                    )}
+                  </div>
+                ))
+              ) : (
+                <p>No members in the room</p>
+              )}
+            </>
+            {(moderatorIsReady && user.moderator.moderator) ||
+            user.role === 'admin' ? (
+              <>
+                <p className='inviteAmembertext'>Invite an member</p>
+                <div className='inviteAMember'>
+                  <UsersDropDown
+                    users={users}
+                    setUsers={setUsers}
+                    selectedUsers={selectedUsers}
+                    setSelectedUsers={setSelectedUsers}
+                  />
+                </div>
+                <div className='inviteToRoomBTN'>
+                  <Button
+                    variant='primary'
+                    disabled={!selectedUsers.length}
+                    onClick={() => inviteToRoom(room.roomId)}
+                  >
+                    Invite to room
+                  </Button>
+                </div>
+              </>
+            ) : (
+              <></>
+            )}
+          </div>
+        </Col>
+      </Row>
+    </Container>
   );
 };
 

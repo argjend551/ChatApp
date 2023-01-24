@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Container, Row, Col, Form, Alert, Button } from 'react-bootstrap';
+import { Button } from 'react-bootstrap';
 import RoomMembersDropdown from '../components/RoomMembersDropDown';
 import SearchBar from '../components/SearchBar';
 import Room from '../components/Room';
@@ -10,10 +10,9 @@ import CreateRoom from '../components/CreateRoom';
 import { BsFillChatDotsFill } from 'react-icons/bs';
 import '../scss/App.scss';
 
-const MyProfilePage = ({ setLoginParent }) => {
+const MyProfilePage = ({ setLoginParent, loggedIn }) => {
   const [user, setUser] = useState(null);
   const [activeList, setActiveList] = useState('rooms');
-  const [loggedIn, setLogin] = useState(false);
   const [createRoom, setCreateRoom] = useState(false);
   const [roomMessages, setRoomMessages] = useState([]);
   const [users, setUsers] = useState([]);
@@ -36,11 +35,9 @@ const MyProfilePage = ({ setLoginParent }) => {
 
     let sse = new EventSource(`/api/sse`, {
       withCredentials: true,
+      reconnect: true,
     });
 
-    sse.onopen = async (event) => {
-      console.log('connected');
-    };
     sse.addEventListener('new-message', (message) => {
       let data = JSON.parse(message.data);
       setRoomMessages((prevMessages) => [...prevMessages, data]);
@@ -76,11 +73,12 @@ const MyProfilePage = ({ setLoginParent }) => {
     sse.addEventListener('ban', (ban) => {
       setBanned(true);
     });
-
-    return () => {
-      sse.close();
+    sse.onclose = () => {
+      sse = new EventSource('/api/sse', {
+        withCredentials: true,
+      });
     };
-  }, []);
+  }, [loggedIn]);
 
   async function getMyProfile() {
     try {
@@ -93,7 +91,7 @@ const MyProfilePage = ({ setLoginParent }) => {
       });
       const data = await response.json();
       setUser(data.user);
-      setLogin(data.loggedIn);
+
       setLoginParent(data.loggedIn);
       if (!data.user) return;
       await getRooms();
@@ -171,7 +169,6 @@ const MyProfilePage = ({ setLoginParent }) => {
         return setBanned(true);
       }
       user.moderator = data;
-      console.log(user.moderator);
       setBanned(false);
     } catch (error) {
       console.error(error);
@@ -228,6 +225,7 @@ const MyProfilePage = ({ setLoginParent }) => {
                   setCreateRoom={setCreateRoom}
                   invitations={invitations}
                   getRooms={getRooms}
+                  setLoginParent={setLoginParent}
                 />
               </div>
               <div className='chat'>
@@ -280,9 +278,9 @@ const MyProfilePage = ({ setLoginParent }) => {
       ) : (
         <>
           <p>Please log in to view your profile</p>
-          <button className='login-btn' onClick={() => navigate(`/`)}>
+          <Button className='login-btn' onClick={() => navigate(`/`)}>
             Login
-          </button>
+          </Button>
         </>
       )}
       {''}

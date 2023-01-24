@@ -1,6 +1,5 @@
 import Message from '../components/Message';
-import { Container, Row, Col, Form, Alert, Button } from 'react-bootstrap';
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { FaInbox } from 'react-icons/fa';
 
 const Room = ({ roomMessages, banned, room, user }) => {

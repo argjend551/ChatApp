@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import Alert from 'react-bootstrap/Alert';
+import { Container, Row, Col, Alert, Button } from 'react-bootstrap';
 import '../scss/App.scss';
 
 const LogInPage = ({ loggedIn }) => {
@@ -51,89 +51,102 @@ const LogInPage = ({ loggedIn }) => {
       setWrongLogin(true);
       if (type == 'success') {
         setWrongLogin(false);
-
         setLoading(true);
-
         setTimeout(() => {
           navigate('/myProfile');
         }, 2000);
       }
-    } catch (error) {
-      console.error(error);
+    } catch (err) {
+      console.error(err);
     }
   }
 
   return (
-    <div className='login'>
-      {showWrongLogin && (
-        <div
-          style={{
-            position: 'absolute',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            alignContent: 'center',
-            width: '100%',
-          }}
-        >
-          <Alert variant={message.type}>{message.text}</Alert>
-        </div>
-      )}
-      <div className='login-container'>
-        <div className='Heading'>
-          {loading ? <h1>Logging in...</h1> : <h1>Login</h1>}
-        </div>
-        <form onSubmit={handleSubmit}>
-          <div className='form-group'>
-            <input
-              style={{ textAlign: 'start' }}
-              type='email'
-              className='form-control'
-              aria-describedby='emailHelp'
-              placeholder='Email'
-              autoComplete='email'
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              disabled={loading}
-              required
-            />
-          </div>
-          <div className='form-group'>
-            <input
-              style={{ textAlign: 'start' }}
-              type='password'
-              className='form-control'
-              placeholder='Password'
-              autoComplete='current-password'
-              value={password}
-              onChange={(e) => setpassword(e.target.value)}
-              disabled={loading}
-              required
-            />
-          </div>
-          <div className='form-group'>
-            {loading ? (
-              <div className='spinner-border' role='status'></div>
-            ) : (
-              <button className='login-btn' variant='primary' type='submit'>
-                Login
-              </button>
+    <Container>
+      <Row>
+        <Col>
+          <div className='login'>
+            {showWrongLogin && (
+              <Row>
+                <Col>
+                  <Alert variant={message.type}>{message.text}</Alert>
+                </Col>
+              </Row>
             )}
+            <Row>
+              <Col>
+                <div className='login-container'>
+                  <div className='Heading'>
+                    {loading ? <h1>Logging in...</h1> : <h1>Login</h1>}
+                  </div>
+                  <form onSubmit={handleSubmit}>
+                    <Row>
+                      <Col>
+                        <div className='form-group'>
+                          <input
+                            style={{ textAlign: 'start' }}
+                            type='email'
+                            className='form-control'
+                            aria-describedby='emailHelp'
+                            placeholder='Email'
+                            autoComplete='email'
+                            value={email}
+                            onChange={(e) => setEmail(e.target.value)}
+                            disabled={loading}
+                            required
+                          />
+                        </div>
+                      </Col>
+                    </Row>
+                    <Row>
+                      <Col>
+                        <div className='form-group'>
+                          <input
+                            style={{ textAlign: 'start' }}
+                            type='password'
+                            className='form-control'
+                            placeholder='Password'
+                            autoComplete='current-password'
+                            value={password}
+                            onChange={(e) => setpassword(e.target.value)}
+                            disabled={loading}
+                            required
+                          />
+                        </div>
+                      </Col>
+                    </Row>
+                    <Row>
+                      <Col>
+                        <div className='form-group'>
+                          {loading ? (
+                            <div className='spinner-border' role='status'></div>
+                          ) : (
+                            <Button type='submit'>Login</Button>
+                          )}
+                        </div>
+                      </Col>
+                    </Row>
+                  </form>
+                  <Row>
+                    <Col>
+                      {!loading ? (
+                        <Link to={'/register'}>
+                          <Button style={{ margin: '5px' }}>
+                            Create new account
+                          </Button>
+                        </Link>
+                      ) : (
+                        <></>
+                      )}
+                    </Col>
+                  </Row>
+                </div>
+              </Col>
+            </Row>
           </div>
-        </form>
-        <div>
-          {!loading ? (
-            <Link to={'/register'}>
-              <button className='register-btn' style={{ margin: '5px' }}>
-                Create new account
-              </button>
-            </Link>
-          ) : (
-            <></>
-          )}
-        </div>
-      </div>
-    </div>
+        </Col>
+      </Row>
+    </Container>
   );
 };
 export default LogInPage;

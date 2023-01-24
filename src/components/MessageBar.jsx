@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Form, Button, FormControl } from 'react-bootstrap';
+import { Form, Button } from 'react-bootstrap';
 import { IoMdSend } from 'react-icons/io';
 
 const MessageBar = ({ roomId, banned }) => {
@@ -26,20 +26,21 @@ const MessageBar = ({ roomId, banned }) => {
   }
 
   return (
-    <form
+    <Form
       onSubmit={sendMessage}
       className={`${banned || !roomId ? 'message-bar-banned' : 'message-bar'}`}
     >
-      <input
+      <Form.Control
         type='text'
         value={message}
         onChange={handleChange}
         placeholder='Type your message'
+        className='input-message'
       />
-      <button variant='primary' type='submit' className='sendBtn'>
+      <Button variant='primary' type='submit' className='sendBtn'>
         <IoMdSend className='sendIcon' />
-      </button>
-    </form>
+      </Button>
+    </Form>
   );
 };
 

@@ -26,18 +26,17 @@ module.exports = class ChatApi {
         if (!acl('sse', req)) {
           throw new NotAllowedException('Not allowed!', 403);
         }
+
+        this.connections = this.connections.filter(
+          (c) => c.id !== req.session.user.user_id
+        );
+
         res.set({
           'Content-Type': 'text/event-stream',
           'Cache-Control': 'no-cache',
           Connection: 'keep-alive',
         });
-        const existingConnection = this.connections.find(
-          (c) => c.id === req.session.user.user_id
-        );
 
-        if (existingConnection) {
-          existingConnection.res == null;
-        }
         this.connections.push({
           id: req.session.user.user_id,
           res: res,
@@ -549,6 +548,7 @@ module.exports = class ChatApi {
               id: member.member,
               username: user.name,
               banned: member.banned,
+              admin: user.role === 'admin',
             };
           })
         );

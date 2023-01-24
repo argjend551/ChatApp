@@ -20,6 +20,7 @@ module.exports = class UserApi {
 
     this.app.post('/api/register', async (req, res, next) => {
       try {
+        console.log(req.session.user);
         if (!acl('register', req)) {
           throw new NotAllowedException('Not allowed!', 403);
         }

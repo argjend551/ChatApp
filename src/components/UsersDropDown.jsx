@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from 'react';
-import { Dropdown, Button } from 'react-bootstrap';
+import React, { useState } from 'react';
+import { Dropdown, Button, Container } from 'react-bootstrap';
 
 const UsersDropDown = ({
   users,
@@ -23,7 +23,7 @@ const UsersDropDown = ({
   };
 
   return (
-    <div>
+    <Container>
       <Dropdown
         className='userSearchDropdown'
         onToggle={handleToggle}
@@ -62,7 +62,7 @@ const UsersDropDown = ({
           </Button>
         ))}
       </div>
-    </div>
+    </Container>
   );
 };
 

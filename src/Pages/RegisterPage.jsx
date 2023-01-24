@@ -1,6 +1,6 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import Alert from 'react-bootstrap/Alert';
+import { Container, Col, Row, Alert, Form, Button } from 'react-bootstrap';
 import '../scss/App.scss';
 
 const RegisterPage = () => {
@@ -56,97 +56,97 @@ const RegisterPage = () => {
   }
 
   return (
-    <div className='register'>
-      {showMessage && (
-        <div
-          style={{
-            position: 'absolute',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            alignContent: 'center',
-            width: '100%',
-          }}
-        >
-          <Alert variant={message.type}>{message.text}</Alert>
-        </div>
-      )}
-      <div className='register-container'>
-        <div className='Heading'>
-          <h1>Register</h1>
-        </div>
-        <form>
-          <div className='form-group'>
-            <input
-              style={{ textAlign: 'start' }}
-              className='form-control'
-              aria-describedby='emailHelp'
-              autoComplete='name'
-              placeholder='Name'
-              value={firstName}
-              onChange={(e) => setFirstName(e.target.value)}
-              disabled={loading}
-              required
-            />
-          </div>
-          <div className='form-group'>
-            <input
-              style={{ textAlign: 'start' }}
-              type='email'
-              className='form-control'
-              aria-describedby='emailHelp'
-              placeholder='Email'
-              autoComplete='email'
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              disabled={loading}
-              required
-            />
-          </div>
-          <div className='form-group'>
-            <input
-              style={{ textAlign: 'start' }}
-              type='password'
-              className='form-control'
-              placeholder='Password'
-              autoComplete='password'
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              disabled={loading}
-              required
-            />
-          </div>
-          <div className='form-group'>
-            <input
-              style={{ textAlign: 'start' }}
-              type='password'
-              className='form-control'
-              placeholder='Confirm password'
-              autoComplete='confirm-password'
-              value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
-              disabled={loading}
-              required
-            />
-          </div>
-
-          <div className='form-group'>
-            {loading ? (
-              <div className='spinner-border' role='status'></div>
-            ) : (
-              <button
-                className='register-btn'
-                variant='primary'
-                type='submit'
-                onClick={register}
-              >
-                Submit
-              </button>
+    <Container>
+      <Row>
+        <Col>
+          <div className='register'>
+            {showMessage && (
+              <Row>
+                <Col>
+                  <Alert variant={message.type}>{message.text}</Alert>
+                </Col>
+              </Row>
             )}
+            <Row>
+              <Col className='register-container'>
+                <div className='Heading'>
+                  <h1>Register</h1>
+                </div>
+                <Form>
+                  <Form.Group>
+                    <Form.Control
+                      style={{ textAlign: 'start' }}
+                      className='form-control'
+                      aria-describedby='emailHelp'
+                      autoComplete='name'
+                      placeholder='Name'
+                      value={firstName}
+                      onChange={(e) => setFirstName(e.target.value)}
+                      disabled={loading}
+                      required
+                    />
+                  </Form.Group>
+                  <Form.Group>
+                    <Form.Control
+                      style={{ textAlign: 'start' }}
+                      type='email'
+                      className='form-control'
+                      aria-describedby='emailHelp'
+                      placeholder='Email'
+                      autoComplete='email'
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      disabled={loading}
+                      required
+                    />
+                  </Form.Group>
+                  <Form.Group>
+                    <Form.Control
+                      style={{ textAlign: 'start' }}
+                      type='password'
+                      className='form-control'
+                      placeholder='Password'
+                      autoComplete='password'
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      disabled={loading}
+                      required
+                    />
+                  </Form.Group>
+                  <Form.Group>
+                    <Form.Control
+                      style={{ textAlign: 'start' }}
+                      type='password'
+                      className='form-control'
+                      placeholder='Confirm password'
+                      autoComplete='confirm-password'
+                      value={confirmPassword}
+                      onChange={(e) => setConfirmPassword(e.target.value)}
+                      disabled={loading}
+                      required
+                    />
+                  </Form.Group>
+
+                  <Form.Group>
+                    {loading ? (
+                      <div className='spinner-border' role='status'></div>
+                    ) : (
+                      <Button
+                        variant='primary'
+                        type='submit'
+                        onClick={register}
+                      >
+                        Submit
+                      </Button>
+                    )}
+                  </Form.Group>
+                </Form>
+              </Col>
+            </Row>
           </div>
-        </form>
-      </div>
-    </div>
+        </Col>
+      </Row>
+    </Container>
   );
 };
 export default RegisterPage;

@@ -189,9 +189,6 @@
   background-color: #dddddd;
 }
 
-.modal {
-  backdrop-filter: blur(2px);
-}
 .wrapper-room {
   justify-content: center;
   align-items: center;
@@ -250,6 +247,7 @@
   justify-content: center;
   max-height: 50%;
   align-items: flex-end;
+  padding-bottom: 20px;
 }
 
 .message-bar form {
@@ -590,12 +588,18 @@
   display: flex;
   justify-content: center;
   align-items: center;
+  background-color: #3b3e49;
 }
 
 .inviteToRoomBTN {
-      display: flex;
-    justify-content: center;
-    margin-bottom: 5px;
+  display: flex;
+  justify-content: center;
+  background-color: #3b3e49;
+  padding-bottom: 12px;
+}
+
+.inviteToRoomBTN button {
+  background-color: #3867d6 !important;
 }
 
 .inviteAmembertext {
@@ -603,7 +607,10 @@
   flex-direction: row;
   justify-content: center;
   align-items: center;
-  margin-top: 10px;
+  padding-top: 10px;
+  background-color: #3b3e49;
+  margin-bottom: 0;
+  color: white;
 }
 .dropdown-toggle {
   background-color: white !important;
@@ -617,7 +624,9 @@
   flex-direction: row;
   gap: 10px;
 }
-
+.selected-user-dropdown button {
+  background-color: #3867d6 !important;
+}
 .no-room-icon {
   color: gray;
   width: 100px;
@@ -821,6 +830,26 @@
   flex-direction: column;
 }
 
+.roomMember-icon-wrapper {
+  background-color: #3b3e49;
+  width: 40px;
+  color: white;
+  height: 40px;
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+  border-radius: 20px;
+  margin-top: -5px;
+  cursor: pointer;
+}
+
+.roomMembers-icon {
+  color: white;
+  width: 30px;
+  height: 20px;
+}
+
 .ban {
   background-color: #d9534f;
   color: white;
@@ -873,12 +902,6 @@
 .RoomMembers-dropdown {
   font-family: 'Roboto', sans-serif;
   width: 100%;
-  display: flex;
-  background-color: #f7f7f7;
-  flex-direction: row;
-  align-content: center;
-  justify-content: space-around;
-  align-items: center;
   position: sticky;
   top: 0;
 }

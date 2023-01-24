@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import LogInPage from './Pages/LogInPage';
 import RegisterPage from './Pages/RegisterPage';
@@ -16,7 +16,9 @@ export default function App() {
           <Routes>
             <Route
               path='/myProfile'
-              element={<MyProfilePage setLoginParent={setLogin} />}
+              element={
+                <MyProfilePage setLoginParent={setLogin} loggedIn={loggedIn} />
+              }
             />
             <Route path='/' element={<LogInPage loggedIn={loggedIn} />} />
             <Route path='/register' element={<RegisterPage />} />
