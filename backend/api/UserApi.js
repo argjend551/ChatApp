@@ -159,12 +159,12 @@ module.exports = class UserApi {
 
     this.app.get('/api/users', async (req, res, next) => {
       try {
-        if (!acl('getUsers', req)) {
-          throw new NotAllowedException('Not allowed!', 403);
-        }
-
         if (!req.session.user) {
           throw new NotLoggedInException('User is not logged in', 401);
+        }
+
+        if (!acl('getUsers', req)) {
+          throw new NotAllowedException('Not allowed!', 403);
         }
 
         const currentUser = req.session.user.user_id;

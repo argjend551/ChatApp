@@ -1,5 +1,6 @@
 const uuid = require('uuid');
 const acl = require('../acl');
+const checkBadWords = require('../badWords');
 const mysql = require('mysql2/promise');
 const NotLoggedInException = require('../api/exceptions/NotLoggedInException');
 const NotAllowedException = require('../api/exceptions/NotAllowedException');
@@ -116,9 +117,6 @@ module.exports = class ChatApi {
     this.app.get('/api/rooms', async (req, res, next) => {
       try {
         const clientId = req.session.user.user_id;
-        if (!clientId) {
-          throw new NotLoggedInException('User is not logged in', 401);
-        }
 
         if (!acl('rooms', req)) {
           throw new NotAllowedException('Not allowed!', 403);
@@ -156,9 +154,6 @@ module.exports = class ChatApi {
     this.app.post('/api/createRoom', async (req, res, next) => {
       try {
         const clientId = req.session.user.user_id;
-        if (!clientId) {
-          throw new NotLoggedInException('User is not logged in', 401);
-        }
 
         if (!acl('createRoom', req)) {
           throw new NotAllowedException('Not allowed!', 403);
@@ -192,6 +187,7 @@ module.exports = class ChatApi {
     this.app.post('/api/sendMessage', async (req, res, next) => {
       try {
         const clientId = req.session.user.user_id;
+
         if (!clientId) {
           throw new NotLoggedInException('User is not logged in', 401);
         }
@@ -200,11 +196,7 @@ module.exports = class ChatApi {
           throw new NotAllowedException('Not allowed!', 403);
         }
         const roomId = req.body.roomId;
-        const message = req.body.message;
-
-        if (!clientId) {
-          throw new NotLoggedInException('User is not logged in', 401);
-        }
+        let message = checkBadWords(req.body.message);
 
         const results = await this.db.query(
           `SELECT * FROM rooms
@@ -248,13 +240,14 @@ module.exports = class ChatApi {
 
     this.app.get('/api/getAllMessages', async (req, res, next) => {
       try {
-        if (!acl('getAllMessages', req)) {
-          throw new NotAllowedException('Not allowed!', 403);
-        }
         const clientId = req.session.user.user_id;
 
         if (!clientId) {
           throw new NotLoggedInException('User is not logged in', 401);
+        }
+
+        if (!acl('getAllMessages', req)) {
+          throw new NotAllowedException('Not allowed!', 403);
         }
 
         const roomConnections = this.connections.find(
