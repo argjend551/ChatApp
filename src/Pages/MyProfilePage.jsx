@@ -67,7 +67,9 @@ const MyProfilePage = ({ setLoginParent, loggedIn }) => {
 
     sse.addEventListener('join-room', (data) => {
       let newMember = JSON.parse(data.data);
-      setMembers((prevMembers) => [...prevMembers, newMember]);
+      setMembers((prevMembers) =>
+        prevMembers ? [...prevMembers, newMember] : [newMember]
+      );
     });
 
     sse.addEventListener('ban', (ban) => {
