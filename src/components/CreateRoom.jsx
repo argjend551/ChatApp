@@ -25,7 +25,6 @@ const CreateRoom = ({ setCreateRoom, joinRoom, getRooms, users, setUsers }) => {
         }),
       });
       let room = await response.json();
-      console.log(room);
       await joinRoom(room);
       await getRooms();
       if (selectedUsers.length) await inviteToRoom(room.roomId);
@@ -55,7 +54,6 @@ const CreateRoom = ({ setCreateRoom, joinRoom, getRooms, users, setUsers }) => {
           invitedMembers: selectedUsers,
         }),
       });
-      console.log(selectedUsers);
     } catch (error) {
       console.error(error);
     }
@@ -104,7 +102,6 @@ const CreateRoom = ({ setCreateRoom, joinRoom, getRooms, users, setUsers }) => {
       {showMessage && (
         <div
           style={{
-            position: 'absolute',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
