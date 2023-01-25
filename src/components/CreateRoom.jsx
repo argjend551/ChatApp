@@ -25,6 +25,7 @@ const CreateRoom = ({ setCreateRoom, joinRoom, getRooms, users, setUsers }) => {
         }),
       });
       let room = await response.json();
+      console.log(room);
       await joinRoom(room);
       await getRooms();
       if (selectedUsers.length) await inviteToRoom(room.roomId);
@@ -54,6 +55,7 @@ const CreateRoom = ({ setCreateRoom, joinRoom, getRooms, users, setUsers }) => {
           invitedMembers: selectedUsers,
         }),
       });
+      console.log(selectedUsers);
     } catch (error) {
       console.error(error);
     }

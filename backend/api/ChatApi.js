@@ -529,11 +529,12 @@ module.exports = class ChatApi {
           [roomId]
         );
 
+        const moderatorDTO = await this.getUserFromUserId(results[0].moderator);
         if (!results[0].member) {
-          return;
+          return res.send({ moderator: moderatorDTO.name });
         }
-
         const roomMembers = results.filter((x) => x.moderator !== x.member);
+
         const membersDTO = await Promise.all(
           roomMembers.map(async (member) => {
             const user = await this.getUserFromUserId(member.member);
@@ -545,8 +546,6 @@ module.exports = class ChatApi {
             };
           })
         );
-
-        const moderatorDTO = await this.getUserFromUserId(results[0].moderator);
 
         const roomMembersDTO = {
           moderator: moderatorDTO.name,

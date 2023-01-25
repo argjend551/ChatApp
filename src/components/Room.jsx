@@ -29,7 +29,7 @@ const Room = ({ roomMessages, banned, room, user }) => {
                 />
               ))
             ) : (
-              <p>send a message!</p>
+              <></>
             )
           ) : (
             <div className='banned'>

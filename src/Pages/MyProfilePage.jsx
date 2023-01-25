@@ -257,7 +257,7 @@ const MyProfilePage = ({ setLoginParent, loggedIn }) => {
                   }`}
                   id='message-container'
                 >
-                  {room ? (
+                  {Object.keys(room).length && !banned ? (
                     <RoomMembersDropdown
                       room={room}
                       members={members}

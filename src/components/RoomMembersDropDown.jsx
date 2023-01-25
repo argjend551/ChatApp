@@ -15,10 +15,10 @@ const RoomMembersDropdown = ({
   const [isOpen, setIsOpen] = useState(false);
   const [moderatorIsReady, setModeratorIsReady] = useState(false);
   const [selectedUsers, setSelectedUsers] = useState([]);
-
   useEffect(() => {
     (async () => {
       try {
+        setModerator('');
         setIsOpen(false);
         setMembers([]);
         const response = await fetch(`/api/getRoomMembers/${room.roomId}`, {
@@ -102,7 +102,9 @@ const RoomMembersDropdown = ({
             </span>
             <>
               <div className='moderatorTag'>Moderator: {moderator}</div>
-              {members.length && moderatorIsReady ? (
+              {members &&
+              Object.keys(members).length >= 0 &&
+              moderatorIsReady ? (
                 members.map((member, index) => (
                   <div key={index} className='member-wrapper'>
                     <div>
