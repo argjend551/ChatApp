@@ -78,7 +78,6 @@ const mysql = require('mysql2/promise');
       )
     `);
 
-    // End the database connection
     await connection.end();
   } catch (error) {
     console.error(error);

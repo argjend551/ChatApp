@@ -42,6 +42,7 @@ module.exports = class ChatApi {
           id: req.session.user.user_id,
           res: res,
         });
+
         res.write(` Connection established\n\n`);
 
         res.on('close', () => {
