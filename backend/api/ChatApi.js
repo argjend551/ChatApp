@@ -133,11 +133,12 @@ module.exports = class ChatApi {
             `SELECT * FROM rooms WHERE moderator = ?
             UNION
             SELECT rooms.* FROM rooms, roommembers WHERE rooms.room_id = roommembers.room_id AND roommembers.member = ?
+            ORDER BY roomName
         `,
             [clientId, clientId]
           );
         } else if (acl('getAllRoomsAdmin', req)) {
-          rooms = await this.db.query(`SELECT * FROM rooms`);
+          rooms = await this.db.query(`SELECT * FROM rooms ORDER BY roomName`);
         }
 
         const roomDTO = rooms[0].map((room) => ({
